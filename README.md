@@ -1,13 +1,40 @@
 # web-findit-gamified
-"Interface web gamificada para o sistema de achados e perdidos universitário."
 
-## Estrutura de Pastas
+Interface web gamificada para o sistema de achados e perdidos universitário.
+
+## Stack
+
+- Vue 3
+- Vite
+- TypeScript
+- Vue Router
+- Pinia
+
+## Estrutura
 
 ```text
 .
-├── /frontend             # Camada de Apresentação (Vue)
-   ├── /public            # Arquivos estáticos
-   └── /src
-       ├── /components    # Componentes reutilizáveis
-       ├── /hooks         # Lógica de Temas (Observer para Dark/Light)
-       └── /services      # Chamadas de API (Consome os DTOs)
+├── public/              # Arquivos estáticos
+├── src/                 # Código-fonte da aplicação
+│   ├── router/          # Rotas do app
+│   └── stores/          # Stores globais com Pinia
+├── index.html           # Entrada HTML do Vite
+├── package.json         # Scripts e dependências
+└── vite.config.ts       # Configuração do Vite
+```
+
+## Como rodar
+
+```bash
+npm install
+npm run dev
+```
+
+## Scripts
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
