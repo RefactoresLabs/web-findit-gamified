@@ -34,17 +34,12 @@ const floatingItems = [
       <div class="visual-backdrop" />
 
       <!-- Itens flutuantes animados -->
-      <div
-        v-for="(item, i) in floatingItems"
-        :key="i"
-        class="floating-item"
-        :style="{
-          left: item.x,
-          top: item.y,
-          fontSize: item.size,
-          animationDelay: item.delay,
-        }"
-      >
+      <div v-for="(item, i) in floatingItems" :key="i" class="floating-item" :style="{
+        left: item.x,
+        top: item.y,
+        fontSize: item.size,
+        animationDelay: item.delay,
+      }">
         {{ item.icon }}
       </div>
 
@@ -87,20 +82,14 @@ const floatingItems = [
             <label for="email-input" class="field-label">E-mail institucional</label>
             <div class="input-wrapper">
               <span class="input-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
               </span>
-              <input
-                id="email-input"
-                v-model="email"
-                type="email"
-                class="input-field"
-                placeholder="seu.nome@undb.edu.br"
-                autocomplete="email"
-                required
-              />
+              <input id="email-input" v-model="email" type="email" class="input-field"
+                placeholder="seu.nome@undb.edu.br" autocomplete="email" required />
             </div>
           </div>
 
@@ -109,33 +98,26 @@ const floatingItems = [
             <label for="password-input" class="field-label">Senha</label>
             <div class="input-wrapper">
               <span class="input-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
               </span>
-              <input
-                id="password-input"
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                class="input-field"
-                placeholder="••••••••"
-                autocomplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                class="toggle-password"
-                :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
-                @click="showPassword = !showPassword"
-              >
-                <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <input id="password-input" v-model="password" :type="showPassword ? 'text' : 'password'"
+                class="input-field" placeholder="••••••••" autocomplete="current-password" required />
+              <button type="button" class="toggle-password"
+                :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'" @click="showPassword = !showPassword">
+                <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
-                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <path
+                    d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                   <line x1="1" y1="1" x2="23" y2="23" />
                 </svg>
               </button>
@@ -145,34 +127,25 @@ const floatingItems = [
           <!-- Lembrar-me -->
           <div class="remember-row">
             <label class="checkbox-label" for="remember-checkbox">
-              <input
-                id="remember-checkbox"
-                v-model="rememberMe"
-                type="checkbox"
-                class="checkbox-input"
-              />
+              <input id="remember-checkbox" v-model="rememberMe" type="checkbox" class="checkbox-input" />
               <span class="checkbox-custom" />
               <span>Lembrar de mim</span>
             </label>
           </div>
 
           <!-- Botão de Login -->
-          <button
-            id="login-btn"
-            type="submit"
-            class="login-btn"
-            :class="{ loading: isLoading }"
-            :disabled="isLoading"
-          >
+          <button id="login-btn" type="submit" class="login-btn" :class="{ loading: isLoading }" :disabled="isLoading">
             <span v-if="!isLoading" class="btn-text">
               Entrar
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
             </span>
             <span v-else class="btn-spinner" aria-label="Carregando">
-              <svg class="spinner-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <svg class="spinner-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5">
                 <circle cx="12" cy="12" r="10" stroke-opacity="0.25" />
                 <path d="M12 2a10 10 0 0 1 10 10" />
               </svg>
@@ -190,15 +163,9 @@ const floatingItems = [
           <p class="register-text">
             Ainda não tem uma conta?
           </p>
-          <a
-            id="register-link"
-            href="#"
-            class="register-btn"
-            role="button"
-            tabindex="0"
-          >
+          <router-link id="register-link" to="/register" class="register-btn">
             Criar conta gratuita
-          </a>
+          </router-link>
         </div>
       </div>
 
@@ -289,9 +256,19 @@ const floatingItems = [
 }
 
 @keyframes floatItem {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-14px) rotate(5deg); }
-  66% { transform: translateY(8px) rotate(-4deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  33% {
+    transform: translateY(-14px) rotate(5deg);
+  }
+
+  66% {
+    transform: translateY(8px) rotate(-4deg);
+  }
 }
 
 /* Conteúdo central */
@@ -542,7 +519,7 @@ const floatingItems = [
   background: #fff;
 }
 
-.input-field:focus + .input-icon,
+.input-field:focus+.input-icon,
 .input-wrapper:focus-within .input-icon {
   color: #4f46e5;
 }
@@ -601,12 +578,12 @@ const floatingItems = [
   background: white;
 }
 
-.checkbox-input:checked + .checkbox-custom {
+.checkbox-input:checked+.checkbox-custom {
   background: #4f46e5;
   border-color: #4f46e5;
 }
 
-.checkbox-input:checked + .checkbox-custom::after {
+.checkbox-input:checked+.checkbox-custom::after {
   content: '';
   width: 5px;
   height: 9px;
@@ -687,7 +664,9 @@ const floatingItems = [
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Divisor */
