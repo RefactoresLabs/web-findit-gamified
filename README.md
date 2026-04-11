@@ -1,5 +1,6 @@
 # web-findit-gamified
-
+#Estive aqui. Prof Rondineli Seba
+#Por que 3 repositóri
 Interface web gamificada para o sistema de achados e perdidos universitário.
 
 ## Stack
