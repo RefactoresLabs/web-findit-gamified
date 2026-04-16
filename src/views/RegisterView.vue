@@ -87,7 +87,7 @@ const floatingItems = [
                                 </svg>
                             </span>
                             <input v-model="name" type="text" class="input-field" placeholder="Seu nome completo"
-                                required />
+                                required data-testid="input-name" />
                         </div>
                     </div>
 
@@ -103,7 +103,7 @@ const floatingItems = [
                                 </svg>
                             </span>
                             <input v-model="email" type="email" class="input-field" placeholder="seu@email.com"
-                                required />
+                                required data-testid="input-email" />
                         </div>
                     </div>
 
@@ -129,7 +129,7 @@ const floatingItems = [
                                 </svg>
                             </span>
                             <input v-model="phone" type="tel" class="input-field" placeholder="(99) 99999-9999"
-                                required />
+                                required data-testid="input-phone" />
                         </div>
                     </div>
                     <!-- Senha -->
@@ -146,9 +146,9 @@ const floatingItems = [
                             </span>
 
                             <input id="register-password" v-model="password" :type="showPassword ? 'text' : 'password'"
-                                class="input-field" placeholder="••••••••" autocomplete="new-password" required />
+                                class="input-field" placeholder="••••••••" autocomplete="new-password" required data-testid="input-password" />
 
-                            <button type="button" class="toggle-password"
+                            <button type="button" class="toggle-password" data-testid="toggle-password"
                                 :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
                                 @click="showPassword = !showPassword">
                                 <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -167,7 +167,7 @@ const floatingItems = [
                     </div>
 
                     <!-- Botão -->
-                    <button class="login-btn" :disabled="isLoading">
+                    <button class="login-btn" :disabled="isLoading" data-testid="register-button">
                         <span v-if="!isLoading">Cadastrar</span>
                         <span v-else>Carregando...</span>
                     </button>
