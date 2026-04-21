@@ -1,18 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
+import { createRouter, createMemoryHistory, RouterLink } from 'vue-router'
 import Login from '@/views/LoginView.vue'
 
-// Stub do router-link
-const RouterLinkStub = {
-  name: 'RouterLink',
-  props: ['to'],
-  template: '<a :href="to"><slot /></a>',
-}
+const mockRouter = createRouter({
+  history: createMemoryHistory(),
+  routes: [
+    { path: '/', component: { template: '<div />' } },
+    { path: '/explorar', component: { template: '<div />' } },
+  ],
+})
 
 function mountComponent(): VueWrapper {
   return mount(Login, {
     global: {
-      components: { RouterLink: RouterLinkStub },
+      plugins: [mockRouter],
     },
   })
 }
@@ -122,7 +124,7 @@ describe('LoginView.vue', () => {
 
   // 🔗 Link
   it('renderiza link para cadastro corretamente', () => {
-    const link = wrapper.findComponent(RouterLinkStub)
+    const link = wrapper.findComponent(RouterLink)
 
     expect(link.exists()).toBe(true)
     expect(link.text()).toBe('Criar conta gratuita')

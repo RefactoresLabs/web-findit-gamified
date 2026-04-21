@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -9,9 +12,9 @@ const rememberMe = ref(false)
 
 function handleLogin() {
   isLoading.value = true
-  // Simulação — lógica real será implementada depois
   setTimeout(() => {
     isLoading.value = false
+    router.push('/explorar')
   }, 1500)
 }
 
