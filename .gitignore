@@ -40,3 +40,12 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# =========================
+# ENV FILES
+# =========================
+.env
+.env.*
+
+# allow example file
+!.env.example

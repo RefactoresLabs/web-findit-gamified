@@ -4,6 +4,7 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
 import ExplorarFeed from '@/components/explorar/ExplorarFeed.vue'
 import ExplorarItemDetail from '@/components/explorar/ExplorarItemDetail.vue'
 import ExplorarMap from '@/components/explorar/ExplorarMap.vue'
+import router from '@/router'
 
 type CurrentView = 'feed' | 'detail' | 'map'
 
@@ -11,9 +12,19 @@ const currentView = ref<CurrentView>('feed')
 const selectedItemId = ref<number | null>(null)
 
 function handleNavigate(item: string) {
+  const routesMap: Record<string, string> = {
+    explorar: '/explorar',
+    registrar: '/register',
+    'meus-itens': '/meus-itens',
+  }
+
   if (item === 'explorar') {
     currentView.value = 'feed'
     selectedItemId.value = null
+  }
+
+  if (routesMap[item]) {
+    router.push(routesMap[item])
   }
 }
 
