@@ -1,0 +1,80 @@
+import { ref } from 'vue'
+import type { Item } from '@/types/item'
+
+const items = ref<Item[]>([
+  {
+    id: 1,
+    nome: 'MacBook Pro 14"',
+    descricao:
+      'MacBook Pro 14 polegadas, cor prata, com adesivo da USP na tampa. Esqueci na mesa do 2º andar.',
+    local: 'Biblioteca Central',
+    data: '12 Mar 2026',
+    categoria: 'Eletrônico',
+    tipo: 'perdido',
+    foto: 'https://cdn.awsli.com.br/600x700/2652/2652463/produto/292219387/1-wcfdr8pksm.jpg',
+    reportadoPor: 'Maria Silva',
+    status: 'Aguardando alguém encontrar este item.',
+    lat: -2.5033,
+    lng: -44.2925,
+  },
+  {
+    id: 2,
+    nome: 'Caderno de Cálculo III',
+    descricao: 'Caderno com anotações de Cálculo III.',
+    local: 'Lab. Informática 3',
+    data: '10 Mar 2026',
+    categoria: 'Material Escolar',
+    tipo: 'perdido',
+    foto: 'https://cdnspecssa.bizay.com/product/migrated/caderno-capa-rigida-com-argolas-x-serigrafia-vermelho-cfkbl-cjgg-source-br-c_h_f_pt-br.png',
+    reportadoPor: 'João Pedro',
+    status: 'Aguardando alguém encontrar este item.',
+    lat: -2.5038,
+    lng: -44.2931,
+  },
+  {
+    id: 3,
+    nome: 'Óculos de Grau',
+    descricao: 'Óculos de grau com armação preta.',
+    local: 'Quadra Poliesportiva',
+    data: '08 Mar 2026',
+    categoria: 'Acessório',
+    tipo: 'perdido',
+    foto: 'https://images.tcdn.com.br/img/img_prod/877056/oculos_de_grau_calvin_klein_feminino_ck23516_12367_variacao_18681_1_19067cc2e48bfb79b40ae0287f124fe7.jpg',
+    reportadoPor: 'Ana Costa',
+    status: 'Aguardando alguém encontrar este item.',
+    lat: -2.5042,
+    lng: -44.292,
+  },
+  {
+    id: 4,
+    nome: 'Garrafa Térmica Azul',
+    descricao: 'Garrafa térmica de cor azul, 500ml.',
+    local: 'Bloco B - Sala 204',
+    data: '11 Mar 2026',
+    categoria: 'Acessório',
+    tipo: 'encontrado',
+    foto: 'https://sublitransferbrasil.com.br/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/1/0/1060081754_garrafa_termica_1000ml_sublitransfer_5_.png_1.png',
+    reportadoPor: 'Carlos Lima',
+    status: 'Item encontrado e aguardando retirada.',
+    lat: -2.5029,
+    lng: -44.2935,
+  },
+  {
+    id: 5,
+    nome: 'Fone JBL Preto',
+    descricao: 'Fone de ouvido JBL, cor preta.',
+    local: 'Cantina',
+    data: '10 Mar 2026',
+    categoria: 'Eletrônico',
+    tipo: 'encontrado',
+    foto: 'https://m.media-amazon.com/images/I/51olNZRjn+L.jpg',
+    reportadoPor: 'Beatriz Santos',
+    status: 'Item encontrado e aguardando retirada.',
+    lat: -2.5036,
+    lng: -44.294,
+  },
+])
+
+export function useItems() {
+  return { items }
+}

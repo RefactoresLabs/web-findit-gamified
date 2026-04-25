@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -9,9 +12,9 @@ const rememberMe = ref(false)
 
 function handleLogin() {
   isLoading.value = true
-  // Simulação — lógica real será implementada depois
   setTimeout(() => {
     isLoading.value = false
+    router.push('/explorar')
   }, 1500)
 }
 
@@ -89,7 +92,7 @@ const floatingItems = [
                 </svg>
               </span>
               <input id="email-input" v-model="email" type="email" class="input-field"
-                placeholder="seu.nome@undb.edu.br" autocomplete="email" required />
+                placeholder="seu.nome@undb.edu.br" autocomplete="email" required data-testid="input-email" />
             </div>
           </div>
 
@@ -105,8 +108,8 @@ const floatingItems = [
                 </svg>
               </span>
               <input id="password-input" v-model="password" :type="showPassword ? 'text' : 'password'"
-                class="input-field" placeholder="••••••••" autocomplete="current-password" required />
-              <button type="button" class="toggle-password"
+                class="input-field" placeholder="••••••••" autocomplete="current-password" required data-testid="input-password" />
+              <button type="button" class="toggle-password" data-testid="toggle-password"
                 :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'" @click="showPassword = !showPassword">
                 <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -134,7 +137,7 @@ const floatingItems = [
           </div>
 
           <!-- Botão de Login -->
-          <button id="login-btn" type="submit" class="login-btn" :class="{ loading: isLoading }" :disabled="isLoading">
+          <button id="login-btn" type="submit" class="login-btn" :class="{ loading: isLoading }" :disabled="isLoading" data-testid="login-button">
             <span v-if="!isLoading" class="btn-text">
               Entrar
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
