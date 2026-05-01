@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { nextTick } from 'vue'
-import RegisterView from '@/components/registrar/RegisterView.vue'
+import RegisterView from '@/views/RegisterItensView.vue'
 
 /* =========================
    🔥 MOCK ROUTER
@@ -19,10 +19,12 @@ vi.mock('vue-router', () => ({
 ========================= */
 vi.mock('@/components/layout/AppSidebar.vue', () => ({
   default: {
-    template: `<div>
-      <button class="nav-register" @click="$emit('navigate','registrar')"></button>
-      <button class="nav-explore" @click="$emit('navigate','explorar')"></button>
-    </div>`,
+    template: `
+      <div>
+        <button class="nav-register" @click="$emit('navigate','registrar')"></button>
+        <button class="nav-explore" @click="$emit('navigate','explorar')"></button>
+      </div>
+    `,
   },
 }))
 
@@ -71,7 +73,7 @@ vi.mock('@/components/registrar/RegisterStepLocation.vue', () => ({
 /* =========================
    🧪 TESTS
 ========================= */
-describe('RegisterView - fluxo completo', () => {
+describe('RegisterItensView - fluxo completo', () => {
   let wrapper: any
 
   beforeEach(() => {
@@ -141,7 +143,7 @@ describe('RegisterView - fluxo completo', () => {
 
     await wrapper.find('.submit').trigger('click')
 
-    expect(pushMock).toHaveBeenCalledWith('/explorar')
+    expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' }) // ✅ CORRIGIDO
     expect(wrapper.vm.currentView).toBe('selection')
   })
 
@@ -171,6 +173,6 @@ describe('RegisterView - fluxo completo', () => {
   it('sidebar navega para explorar', async () => {
     await wrapper.find('.nav-explore').trigger('click')
 
-    expect(pushMock).toHaveBeenCalledWith('/explorar')
+    expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' }) // ✅ CORRIGIDO
   })
 })

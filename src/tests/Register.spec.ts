@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import Register from '@/views/RegisterView.vue'
+import Register from '@/views/RegisterUserView.vue'
 
 // Stub do router-link
 const RouterLinkStub = {

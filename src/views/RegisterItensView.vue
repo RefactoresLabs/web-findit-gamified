@@ -18,10 +18,10 @@ const registerType = ref<RegisterType>('lost')
 const formData = ref<Record<string, any>>({})
 
 function handleNavigate(item: string) {
-  const routesMap: Record<string, string> = {
-    explorar: '/explorar',
-    registrar: '/register',
-    'meus-itens': '/meus-itens',
+  const routesMap: Record<string, any> = {
+    explorar: { name: 'explorar' },
+    registrar: { name: 'registrar' },
+    'meus-itens': { name: 'meus-itens' },
   }
 
   if (item === 'registrar') {
@@ -59,7 +59,7 @@ function handleSubmit(data: Record<string, any>) {
   // TODO: chamar API
   currentView.value = 'selection'
   formData.value = {}
-  router.push('/explorar')
+  router.push({ name: 'explorar' })
 }
 
 function goBack() {

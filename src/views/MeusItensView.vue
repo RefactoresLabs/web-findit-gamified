@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import router from '@/router'
+
+const router = useRouter()
 
 type TabType = 'perdidos' | 'encontrados'
 
@@ -9,38 +11,30 @@ const activeTab = ref<TabType>('perdidos')
 
 // Mock data — substituir por store/API futuramente
 const perdidos = ref([
+
   {
     id: 1,
     title: 'MacBook Pro 14"',
     location: 'Biblioteca Central',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=80&h=80&fit=crop',
-  },
-  {
-    id: 2,
-    title: 'Caderno de Cálculo III',
-    location: 'Lab. Informática 3',
-    image: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=80&h=80&fit=crop',
-  },
-  {
-    id: 3,
-    title: 'Óculos de Grau',
-    location: 'Quadra Poliesportiva',
-    image: '',
+    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=80',
+    description: 'Notebook perdido próximo à entrada.',
+    user: 'Christhian Gabriel',
+    date: '2026-05-01',
+    type: 'perdido',
   },
 ])
+
 
 const encontrados = ref([
   {
     id: 4,
     title: 'Carteira de Couro',
     location: 'Cantina Central',
-    image: 'https://images.unsplash.com/photo-1627123424574-724758594913?w=80&h=80&fit=crop',
-  },
-  {
-    id: 5,
-    title: 'Chave com chaveiro azul',
-    location: 'Bloco B — Corredor',
-    image: '',
+    image: 'https://images.unsplash.com/photo-1627123424574-724758594913?w=80',
+    description: 'Carteira encontrada com documentos.',
+    user: 'Christhian Gabriel',
+    date: '2026-05-02',
+    type: 'encontrado',
   },
 ])
 
@@ -49,11 +43,12 @@ const currentItems = computed(() =>
 )
 
 function handleNavigate(item: string) {
-  const routesMap: Record<string, string> = {
-    explorar: '/explorar',
-    registrar: '/register',
-    'meus-itens': '/meus-itens',
+  const routesMap: Record<string, any> = {
+    explorar: { name: 'explorar' },
+    registrar: { name: 'registrar' },
+    'meus-itens': { name: 'meus-itens' },
   }
+
   if (routesMap[item]) {
     router.push(routesMap[item])
   }
@@ -75,18 +70,10 @@ function handleLogout() {
       </div>
 
       <div class="tabs">
-        <button
-          class="tab"
-          :class="{ active: activeTab === 'perdidos' }"
-          @click="activeTab = 'perdidos'"
-        >
+        <button class="tab" :class="{ active: activeTab === 'perdidos' }" @click="activeTab = 'perdidos'">
           Perdidos ({{ perdidos.length }})
         </button>
-        <button
-          class="tab"
-          :class="{ active: activeTab === 'encontrados' }"
-          @click="activeTab = 'encontrados'"
-        >
+        <button class="tab" :class="{ active: activeTab === 'encontrados' }" @click="activeTab = 'encontrados'">
           Encontrados ({{ encontrados.length }})
         </button>
       </div>
@@ -111,7 +98,7 @@ function handleLogout() {
             </span>
           </div>
 
-          <button class="item-arrow">
+          <button class="item-arrow" @click="router.push(`/item/${item.id}`)">
             <i class="pi pi-arrow-right"></i>
           </button>
         </div>
@@ -265,8 +252,15 @@ function handleLogout() {
   font-weight: 600;
 }
 
-.badge-lost { background: #ef4444; color: #fff; }
-.badge-found { background: #22c55e; color: #fff; }
+.badge-lost {
+  background: #ef4444;
+  color: #fff;
+}
+
+.badge-found {
+  background: #22c55e;
+  color: #fff;
+}
 
 .item-arrow {
   background: none;
@@ -288,6 +282,12 @@ function handleLogout() {
   gap: 0.75rem;
 }
 
-.empty-state i { font-size: 2.5rem; }
-.empty-state p { font-size: 0.9rem; margin: 0; }
+.empty-state i {
+  font-size: 2.5rem;
+}
+
+.empty-state p {
+  font-size: 0.9rem;
+  margin: 0;
+}
 </style>

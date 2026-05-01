@@ -90,7 +90,9 @@ describe('ExplorarFeed.vue', () => {
 
   it('emite showDetail com o id ao clicar em um card', async () => {
     const cards = wrapper.findAll('[data-testid="item-card"]')
-    await cards[0].trigger('click')
+    const card = cards[0]
+    if (!card) throw new Error('Nenhum card encontrado')
+    await card.trigger('click')
     expect(wrapper.emitted('showDetail')).toBeTruthy()
     expect(wrapper.emitted('showDetail')![0]).toEqual([1])
   })

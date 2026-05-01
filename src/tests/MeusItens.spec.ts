@@ -1,33 +1,31 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import MeusItens from '@/components/MeusIntes/MeusItensView.vue'
+import MeusItens from '@/views/MeusItensView.vue'
 
-// ✅ mock correto do router (SEM variável externa)
-vi.mock('@/router', () => {
-  return {
-    default: {
-      push: vi.fn()
-    }
-  }
-})
+// ✅ MOCK CORRETO DO ROUTER
+const pushMock = vi.fn()
+
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: pushMock,
+  }),
+}))
 
 describe('MeusItens - cobertura completa', () => {
   let wrapper: any
-  let router: any
 
-  beforeEach(async () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+
     wrapper = mount(MeusItens, {
       global: {
         stubs: {
           AppSidebar: {
-            template: '<div data-testid="sidebar"></div>'
-          }
-        }
-      }
+            template: '<div data-testid="sidebar"></div>',
+          },
+        },
+      },
     })
-
-    // ✅ pega o mock do router corretamente
-    router = await import('@/router')
   })
 
   // ✅ RENDER
@@ -145,27 +143,27 @@ describe('MeusItens - cobertura completa', () => {
   it('navega para explorar', () => {
     wrapper.vm.handleNavigate('explorar')
 
-    expect(router.default.push).toHaveBeenCalledWith('/explorar')
+    expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' })
   })
 
   it('navega para registrar', () => {
     wrapper.vm.handleNavigate('registrar')
 
-    expect(router.default.push).toHaveBeenCalledWith('/register')
+    expect(pushMock).toHaveBeenCalledWith({ name: 'registrar' })
   })
 
   it('navega para meus-itens', () => {
     wrapper.vm.handleNavigate('meus-itens')
 
-    expect(router.default.push).toHaveBeenCalledWith('/meus-itens')
+    expect(pushMock).toHaveBeenCalledWith({ name: 'meus-itens' })
   })
 
   it('não navega com rota inválida', () => {
-    router.default.push.mockClear()
+    pushMock.mockClear()
 
     wrapper.vm.handleNavigate('invalido')
 
-    expect(router.default.push).not.toHaveBeenCalled()
+    expect(pushMock).not.toHaveBeenCalled()
   })
 
   // ✅ LOGOUT

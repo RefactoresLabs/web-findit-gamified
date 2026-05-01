@@ -22,7 +22,7 @@ describe('ExplorarItemDetail.vue', () => {
     const wrapper = mountComponent()
     const img = wrapper.find('[data-testid="detail-foto"]')
     expect(img.exists()).toBe(true)
-    expect(img.attributes('src')).toBe('https://picsum.photos/seed/macbook/400/300')
+    expect(img.attributes('src')).toBe('https://cdn.awsli.com.br/600x700/2652/2652463/produto/292219387/1-wcfdr8pksm.jpg')
   })
 
   it('renderiza o nome do item em h1', () => {
