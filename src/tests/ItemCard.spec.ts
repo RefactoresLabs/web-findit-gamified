@@ -14,6 +14,10 @@ const mockItem: Item = {
   foto: 'https://picsum.photos/seed/macbook/400/300',
   reportadoPor: 'Maria Silva',
   status: 'Aguardando alguém encontrar este item.',
+  
+  // ✅ CORREÇÃO AQUI
+  lat: -2.5307,
+  lng: -44.3068,
 }
 
 describe('ItemCard.vue', () => {
@@ -53,7 +57,10 @@ describe('ItemCard.vue', () => {
   it('emite evento select com o id do item ao clicar no card', async () => {
     const wrapper = mount(ItemCard, { props: { item: mockItem } })
     await wrapper.find('[data-testid="item-card"]').trigger('click')
-    expect(wrapper.emitted('select')).toBeTruthy()
-    expect(wrapper.emitted('select')![0]).toEqual([mockItem.id])
+
+    const emitted = wrapper.emitted('select')
+    expect(emitted).toBeTruthy()
+
+    expect(emitted![0]).toEqual([mockItem.id])
   })
 })
