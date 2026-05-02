@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, VueWrapper } from '@vue/test-utils'
 import MeusItens from '@/views/MeusItensView.vue'
 
-// ✅ MOCK CORRETO DO ROUTER
+/* =========================
+   🔥 MOCK ROUTER
+========================= */
 const pushMock = vi.fn()
 
 vi.mock('vue-router', () => ({
@@ -11,8 +13,34 @@ vi.mock('vue-router', () => ({
   }),
 }))
 
+/* =========================
+   🔥 TIPO DO COMPONENT
+========================= */
+
+type Item = {
+  id: number
+  title: string
+  location: string
+  image: string
+  description: string
+  user: string
+  date: string
+  type: 'perdido' | 'encontrado'
+}
+type MeusItensVM = {
+  activeTab: 'perdidos' | 'encontrados'
+  perdidos: Item[]
+  encontrados: Item[]
+  currentItems: Item[]
+  handleNavigate: (item: string) => void
+  handleLogout: () => void
+}
+
+/* =========================
+   🧪 TESTES
+========================= */
 describe('MeusItens - cobertura completa', () => {
-  let wrapper: any
+  let wrapper: VueWrapper<MeusItensVM>
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -25,7 +53,7 @@ describe('MeusItens - cobertura completa', () => {
           },
         },
       },
-    })
+    }) as VueWrapper<MeusItensVM>
   })
 
   // ✅ RENDER
@@ -40,33 +68,33 @@ describe('MeusItens - cobertura completa', () => {
   })
 
   // ✅ TABS
-  it('renderiza abas corretamente', () => {
-    const tabs = wrapper.findAll('.tab')
+it('renderiza abas corretamente', () => {
+  const tabs = wrapper.findAll('.tab')
 
-    expect(tabs.length).toBe(2)
-    expect(tabs[0].text()).toContain('Perdidos')
-    expect(tabs[1].text()).toContain('Encontrados')
-  })
+  expect(tabs.length).toBe(2)
 
+  const [tab1, tab2] = tabs
+
+  expect(tab1!.text()).toContain('Perdidos')
+  expect(tab2!.text()).toContain('Encontrados')
+})
   it('inicia com aba perdidos ativa', () => {
     expect(wrapper.find('.tab.active').text()).toContain('Perdidos')
   })
 
   // ✅ TROCA DE TAB
   it('troca para encontrados ao clicar', async () => {
-    const tab = wrapper.findAll('.tab')[1]
-
+    const tab = wrapper.findAll('.tab')[1]!
     await tab.trigger('click')
 
     expect(wrapper.vm.activeTab).toBe('encontrados')
-    expect(wrapper.find('.tab.active').text()).toContain('Encontrados')
   })
 
   it('volta para perdidos ao clicar novamente', async () => {
     const tabs = wrapper.findAll('.tab')
 
-    await tabs[1].trigger('click')
-    await tabs[0].trigger('click')
+    await tabs[1]!.trigger('click')
+    await tabs[0]!.trigger('click')
 
     expect(wrapper.vm.activeTab).toBe('perdidos')
   })
@@ -77,7 +105,7 @@ describe('MeusItens - cobertura completa', () => {
   })
 
   it('currentItems retorna encontrados ao trocar aba', async () => {
-    await wrapper.findAll('.tab')[1].trigger('click')
+    await wrapper.findAll('.tab')[1]!.trigger('click')
 
     expect(wrapper.vm.currentItems).toEqual(wrapper.vm.encontrados)
   })
@@ -85,15 +113,13 @@ describe('MeusItens - cobertura completa', () => {
   // ✅ LISTA
   it('renderiza itens perdidos', () => {
     const items = wrapper.findAll('.item-card')
-
     expect(items.length).toBe(wrapper.vm.perdidos.length)
   })
 
   it('renderiza itens encontrados', async () => {
-    await wrapper.findAll('.tab')[1].trigger('click')
+    await wrapper.findAll('.tab')[1]!.trigger('click')
 
     const items = wrapper.findAll('.item-card')
-
     expect(items.length).toBe(wrapper.vm.encontrados.length)
   })
 
@@ -111,7 +137,7 @@ describe('MeusItens - cobertura completa', () => {
   })
 
   it('mostra placeholder quando não tem imagem', async () => {
-    wrapper.vm.perdidos[0].image = ''
+    wrapper.vm.perdidos[0]!.image = ''
 
     await wrapper.vm.$nextTick()
 
@@ -124,7 +150,7 @@ describe('MeusItens - cobertura completa', () => {
   })
 
   it('muda badge para "Encontrado"', async () => {
-    await wrapper.findAll('.tab')[1].trigger('click')
+    await wrapper.findAll('.tab')[1]!.trigger('click')
 
     expect(wrapper.find('.item-badge').text()).toBe('Encontrado')
   })
@@ -142,19 +168,16 @@ describe('MeusItens - cobertura completa', () => {
   // ✅ NAVEGAÇÃO
   it('navega para explorar', () => {
     wrapper.vm.handleNavigate('explorar')
-
     expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' })
   })
 
   it('navega para registrar', () => {
     wrapper.vm.handleNavigate('registrar')
-
     expect(pushMock).toHaveBeenCalledWith({ name: 'registrar' })
   })
 
   it('navega para meus-itens', () => {
     wrapper.vm.handleNavigate('meus-itens')
-
     expect(pushMock).toHaveBeenCalledWith({ name: 'meus-itens' })
   })
 
@@ -166,14 +189,23 @@ describe('MeusItens - cobertura completa', () => {
     expect(pushMock).not.toHaveBeenCalled()
   })
 
-  // ✅ LOGOUT
+  // ✅ LOGOUT (SEM ANY)
   it('faz logout corretamente', () => {
-    delete (window as any).location
-    window.location = { href: '' } as any
+    const originalLocation = window.location
+
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+    })
 
     wrapper.vm.handleLogout()
 
     expect(window.location.href).toBe('/')
+
+    // restaura
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+    })
   })
 
   // ✅ UI

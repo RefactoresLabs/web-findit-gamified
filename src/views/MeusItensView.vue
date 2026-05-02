@@ -5,13 +5,30 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
 
 const router = useRouter()
 
+/* =========================
+   🔥 TIPOS
+========================= */
 type TabType = 'perdidos' | 'encontrados'
 
+type Item = {
+  id: number
+  title: string
+  location: string
+  image: string
+  description: string
+  user: string
+  date: string
+  type: 'perdido' | 'encontrado'
+}
+
+type RouteKey = 'explorar' | 'registrar' | 'meus-itens'
+
+/* =========================
+   🔥 STATE
+========================= */
 const activeTab = ref<TabType>('perdidos')
 
-// Mock data — substituir por store/API futuramente
-const perdidos = ref([
-
+const perdidos = ref<Item[]>([
   {
     id: 1,
     title: 'MacBook Pro 14"',
@@ -24,8 +41,7 @@ const perdidos = ref([
   },
 ])
 
-
-const encontrados = ref([
+const encontrados = ref<Item[]>([
   {
     id: 4,
     title: 'Carteira de Couro',
@@ -38,19 +54,29 @@ const encontrados = ref([
   },
 ])
 
+/* =========================
+   🔥 COMPUTED
+========================= */
 const currentItems = computed(() =>
   activeTab.value === 'perdidos' ? perdidos.value : encontrados.value
 )
 
-function handleNavigate(item: string) {
-  const routesMap: Record<string, any> = {
-    explorar: { name: 'explorar' },
-    registrar: { name: 'registrar' },
-    'meus-itens': { name: 'meus-itens' },
-  }
+/* =========================
+   🔥 ROTAS SEGURAS
+========================= */
+const routesMap: Record<RouteKey, { name: RouteKey }> = {
+  explorar: { name: 'explorar' },
+  registrar: { name: 'registrar' },
+  'meus-itens': { name: 'meus-itens' },
+}
 
-  if (routesMap[item]) {
-    router.push(routesMap[item])
+/* =========================
+   🔥 FUNÇÕES
+========================= */
+function handleNavigate(item: string) {
+  if (item in routesMap) {
+    const key = item as RouteKey
+    router.push(routesMap[key])
   }
 }
 
@@ -69,17 +95,33 @@ function handleLogout() {
         <p class="page-sub">Gerencie os itens que você registrou</p>
       </div>
 
+      <!-- TABS -->
       <div class="tabs">
-        <button class="tab" :class="{ active: activeTab === 'perdidos' }" @click="activeTab = 'perdidos'">
+        <button
+          class="tab"
+          :class="{ active: activeTab === 'perdidos' }"
+          @click="activeTab = 'perdidos'"
+        >
           Perdidos ({{ perdidos.length }})
         </button>
-        <button class="tab" :class="{ active: activeTab === 'encontrados' }" @click="activeTab = 'encontrados'">
+
+        <button
+          class="tab"
+          :class="{ active: activeTab === 'encontrados' }"
+          @click="activeTab = 'encontrados'"
+        >
           Encontrados ({{ encontrados.length }})
         </button>
       </div>
 
+      <!-- LISTA -->
       <div class="items-list">
-        <div v-for="item in currentItems" :key="item.id" class="item-card">
+        <div
+          v-for="item in currentItems"
+          :key="item.id"
+          class="item-card"
+        >
+          <!-- IMAGEM -->
           <div class="item-thumb">
             <img v-if="item.image" :src="item.image" :alt="item.title" />
             <div v-else class="thumb-placeholder">
@@ -87,22 +129,33 @@ function handleLogout() {
             </div>
           </div>
 
+          <!-- INFO -->
           <div class="item-info">
             <span class="item-title">{{ item.title }}</span>
+
             <span class="item-location">
               <i class="pi pi-map-marker"></i>
               {{ item.location }}
             </span>
-            <span class="item-badge" :class="activeTab === 'perdidos' ? 'badge-lost' : 'badge-found'">
+
+            <span
+              class="item-badge"
+              :class="activeTab === 'perdidos' ? 'badge-lost' : 'badge-found'"
+            >
               {{ activeTab === 'perdidos' ? 'Perdido' : 'Encontrado' }}
             </span>
           </div>
 
-          <button class="item-arrow" @click="router.push(`/item/${item.id}`)">
+          <!-- AÇÃO -->
+          <button
+            class="item-arrow"
+            @click="router.push(`/item/${item.id}`)"
+          >
             <i class="pi pi-arrow-right"></i>
           </button>
         </div>
 
+        <!-- EMPTY -->
         <div v-if="currentItems.length === 0" class="empty-state">
           <i class="pi pi-inbox"></i>
           <p>Nenhum item registrado ainda.</p>
@@ -111,7 +164,6 @@ function handleLogout() {
     </main>
   </div>
 </template>
-
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 

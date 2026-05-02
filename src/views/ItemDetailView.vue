@@ -1,15 +1,37 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 
+/* =========================
+   🔥 TYPES
+========================= */
+type Item = {
+  id: number
+  title: string
+  description: string
+  location: string
+  image: string
+  type: 'perdido' | 'encontrado'
+}
+
+type RouteKey = 'explorar' | 'registrar' | 'meus-itens'
+
+/* =========================
+   🔥 ROUTER
+========================= */
 const route = useRoute()
 const router = useRouter()
 
-const item = ref<any>(null)
+/* =========================
+   🔥 STATE
+========================= */
+const item = ref<Item | null>(null)
 
-// 🔥 MOCK (igual padrão que você já usa)
-const myItems = [
+/* =========================
+   🔥 MOCK DATA
+========================= */
+const myItems: Item[] = [
   {
     id: 1,
     title: 'MacBook Pro 14"',
@@ -28,20 +50,26 @@ const myItems = [
   },
 ]
 
+/* =========================
+   🔥 LOAD ITEM
+========================= */
 onMounted(() => {
   const id = Number(route.params.id)
-  item.value = myItems.find(i => i.id === id)
+  item.value = myItems.find(i => i.id === id) ?? null
 })
 
-function handleNavigate(itemKey: string) {
-  const routesMap: Record<string, any> = {
-    explorar: { name: 'explorar' },
-    registrar: { name: 'register-item' },
-    'meus-itens': { name: 'meus-itens' },
-  }
+/* =========================
+   🔥 NAVIGATION
+========================= */
+const routesMap: Record<RouteKey, RouteLocationRaw> = {
+  explorar: { name: 'explorar' },
+  registrar: { name: 'register-item' },
+  'meus-itens': { name: 'meus-itens' },
+}
 
-  if (routesMap[itemKey]) {
-    router.push(routesMap[itemKey])
+function handleNavigate(itemKey: string) {
+  if (routesMap[itemKey as RouteKey]) {
+    router.push(routesMap[itemKey as RouteKey])
   }
 }
 
@@ -53,6 +81,9 @@ function goBack() {
   router.back()
 }
 
+/* =========================
+   🔥 ACTIONS
+========================= */
 function confirmarEntrega() {
   alert('Entrega confirmada!')
 }
@@ -60,11 +91,14 @@ function confirmarEntrega() {
 
 <template>
   <div class="detail-layout">
-    <AppSidebar active-item="meus-itens" @navigate="handleNavigate" @logout="handleLogout" />
+    <AppSidebar
+      active-item="meus-itens"
+      @navigate="handleNavigate"
+      @logout="handleLogout"
+    />
 
     <main class="detail-main" v-if="item">
-
-      <!-- Header -->
+      <!-- HEADER -->
       <div class="page-header">
         <button class="back-btn" @click="goBack">
           <i class="pi pi-arrow-left"></i>
@@ -75,10 +109,9 @@ function confirmarEntrega() {
         </div>
       </div>
 
-      <!-- Card -->
+      <!-- CARD -->
       <div class="detail-card">
-
-        <!-- Imagem -->
+        <!-- IMAGEM -->
         <div class="detail-image">
           <img v-if="item.image" :src="item.image" />
           <div v-else class="image-placeholder">
@@ -86,9 +119,12 @@ function confirmarEntrega() {
           </div>
         </div>
 
-        <!-- Infos -->
+        <!-- INFOS -->
         <div class="detail-info">
-          <span class="item-badge" :class="item.type === 'perdido' ? 'badge-lost' : 'badge-found'">
+          <span
+            class="item-badge"
+            :class="item.type === 'perdido' ? 'badge-lost' : 'badge-found'"
+          >
             {{ item.type === 'perdido' ? 'Perdido' : 'Encontrado' }}
           </span>
 
@@ -103,7 +139,7 @@ function confirmarEntrega() {
             {{ item.location }}
           </div>
 
-          <!-- 🔥 BOTÃO CONDICIONAL -->
+          <!-- BOTÃO CONDICIONAL -->
           <button
             v-if="item.type === 'encontrado'"
             class="confirm-btn"
@@ -112,9 +148,7 @@ function confirmarEntrega() {
             Confirmar entrega
           </button>
         </div>
-
       </div>
-
     </main>
   </div>
 </template>
@@ -260,14 +294,13 @@ function confirmarEntrega() {
 .confirm-btn:hover {
   opacity: 0.85;
 }
-/* 📱 MOBILE */
-@media (max-width: 768px) {
 
+/* MOBILE */
+@media (max-width: 768px) {
   .detail-main {
     padding: 1.25rem;
   }
 
-  /* HEADER */
   .page-header {
     align-items: flex-start;
   }
@@ -280,20 +313,17 @@ function confirmarEntrega() {
     font-size: 0.8rem;
   }
 
-  /* CARD VIRA COLUNA */
   .detail-card {
     flex-direction: column;
     gap: 1.25rem;
     padding: 1rem;
   }
 
-  /* IMAGEM RESPONSIVA */
   .detail-image {
     width: 100%;
     height: 220px;
   }
 
-  /* INFO */
   .detail-title {
     font-size: 1.1rem;
   }
@@ -306,7 +336,6 @@ function confirmarEntrega() {
     font-size: 0.8rem;
   }
 
-  /* BOTÃO FULL */
   .confirm-btn {
     width: 100%;
     text-align: center;

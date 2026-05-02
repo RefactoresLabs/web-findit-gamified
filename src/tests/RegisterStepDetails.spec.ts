@@ -1,9 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, VueWrapper } from '@vue/test-utils'
 import RegisterStepDetails from '@/components/registrar/RegisterStepDetails.vue'
 
+type FormPayload = {
+  itemName: string
+  category: string
+  description: string
+}
+
 describe('RegisterStepDetails - cobertura completa', () => {
-  let wrapper: any
+  let wrapper: VueWrapper
 
   beforeEach(() => {
     wrapper = mount(RegisterStepDetails, {
@@ -23,32 +29,41 @@ describe('RegisterStepDetails - cobertura completa', () => {
 
   // ✅ BADGE
   it('mostra badge "Perdido"', () => {
-    expect(wrapper.find('.badge').text()).toBe('Perdido')
-    expect(wrapper.find('.badge').classes()).toContain('badge-lost')
+    const badge = wrapper.find('.badge')
+
+    expect(badge.text()).toBe('Perdido')
+    expect(badge.classes()).toContain('badge-lost')
   })
 
   it('mostra badge "Encontrado"', async () => {
     await wrapper.setProps({ type: 'found' })
 
-    expect(wrapper.find('.badge').text()).toBe('Encontrado')
-    expect(wrapper.find('.badge').classes()).toContain('badge-found')
+    const badge = wrapper.find('.badge')
+
+    expect(badge.text()).toBe('Encontrado')
+    expect(badge.classes()).toContain('badge-found')
   })
 
   // ✅ INPUTS INICIAIS
   it('preenche nome e email com props', () => {
     const inputs = wrapper.findAll('input')
 
-    expect(inputs[0].element.value).toBe('Chris')
-    expect(inputs[1].element.value).toBe('chris@email.com')
+    expect(inputs.length).toBeGreaterThanOrEqual(2)
+
+    expect((inputs[0]!.element as HTMLInputElement).value).toBe('Chris')
+    expect((inputs[1]!.element as HTMLInputElement).value).toBe('chris@email.com')
   })
 
   // ✅ FORMULÁRIO (v-model)
   it('atualiza itemName', async () => {
-    const input = wrapper.findAll('input')[2]
+    const inputs = wrapper.findAll('input')
 
-    await input.setValue('Carteira')
+    expect(inputs.length).toBeGreaterThan(2)
 
-    expect(wrapper.vm.form.itemName).toBe('Carteira')
+    await inputs[2]!.setValue('Carteira')
+
+    const vm = wrapper.vm as unknown as { form: FormPayload }
+    expect(vm.form.itemName).toBe('Carteira')
   })
 
   it('atualiza categoria', async () => {
@@ -56,7 +71,8 @@ describe('RegisterStepDetails - cobertura completa', () => {
 
     await select.setValue('documentos')
 
-    expect(wrapper.vm.form.category).toBe('documentos')
+    const vm = wrapper.vm as unknown as { form: FormPayload }
+    expect(vm.form.category).toBe('documentos')
   })
 
   it('atualiza descrição', async () => {
@@ -64,7 +80,8 @@ describe('RegisterStepDetails - cobertura completa', () => {
 
     await textarea.setValue('Carteira preta')
 
-    expect(wrapper.vm.form.description).toBe('Carteira preta')
+    const vm = wrapper.vm as unknown as { form: FormPayload }
+    expect(vm.form.description).toBe('Carteira preta')
   })
 
   // ✅ VALIDAÇÃO
@@ -75,7 +92,11 @@ describe('RegisterStepDetails - cobertura completa', () => {
   })
 
   it('habilita botão quando formulário válido', async () => {
-    await wrapper.findAll('input')[2].setValue('Carteira')
+    const inputs = wrapper.findAll('input')
+
+    expect(inputs.length).toBeGreaterThan(2)
+
+    await inputs[2]!.setValue('Carteira')
     await wrapper.find('select').setValue('documentos')
     await wrapper.find('textarea').setValue('Descrição')
 
@@ -86,15 +107,24 @@ describe('RegisterStepDetails - cobertura completa', () => {
 
   // ✅ EMIT NEXT
   it('emite next com dados corretos', async () => {
-    await wrapper.findAll('input')[2].setValue('Carteira')
+    const inputs = wrapper.findAll('input')
+
+    expect(inputs.length).toBeGreaterThan(2)
+
+    await inputs[2]!.setValue('Carteira')
     await wrapper.find('select').setValue('documentos')
     await wrapper.find('textarea').setValue('Descrição')
 
     await wrapper.find('.btn-primary').trigger('click')
 
-    expect(wrapper.emitted('next')).toBeTruthy()
+    const events = wrapper.emitted('next')
 
-    const payload = wrapper.emitted('next')[0][0]
+    expect(events).toBeTruthy()
+    const eventsArray = events as unknown[][]
+
+    expect(eventsArray.length).toBeGreaterThan(0)
+
+    const payload = eventsArray[0]?.[0] as FormPayload
 
     expect(payload.itemName).toBe('Carteira')
     expect(payload.category).toBe('documentos')

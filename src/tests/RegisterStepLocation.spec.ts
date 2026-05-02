@@ -1,9 +1,9 @@
-import { mount } from '@vue/test-utils'
+import { mount, VueWrapper } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import RegisterStepLocation from '@/components/registrar/RegisterStepLocation.vue'
 
 /* =========================
-   🔥 MOCK LEAFLET CORRIGIDO
+   🔥 MOCK LEAFLET
 ========================= */
 vi.mock('leaflet', () => {
   const mapMock = {
@@ -34,22 +34,30 @@ vi.mock('leaflet', () => {
 })
 
 /* =========================
-   🔥 MOCK FETCH (API GEO)
+   🔥 TIPAGEM DO FETCH
+========================= */
+type GeoResponse = Array<{
+  lat: string
+  lon: string
+}>
+
+/* =========================
+   🔥 MOCK FETCH (SEM ANY)
 ========================= */
 globalThis.fetch = vi.fn(() =>
   Promise.resolve({
     json: () =>
-      Promise.resolve([
+      Promise.resolve<GeoResponse>([
         { lat: '-2.5307', lon: '-44.3068' },
       ]),
   })
-) as any
+) as unknown as typeof fetch
 
 /* =========================
    🧪 TESTES
 ========================= */
 describe('RegisterStepLocation - cobertura completa', () => {
-  let wrapper: any
+  let wrapper: VueWrapper
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -81,7 +89,11 @@ describe('RegisterStepLocation - cobertura completa', () => {
 
     await select.setValue('UNDB')
 
-    expect(wrapper.vm.form.predio).toBe('UNDB')
+    const vm = wrapper.vm as unknown as {
+      form: { predio: string }
+    }
+
+    expect(vm.form.predio).toBe('UNDB')
   })
 
   it('atualiza descrição', async () => {
@@ -89,7 +101,11 @@ describe('RegisterStepLocation - cobertura completa', () => {
 
     await input.setValue('Sala 204')
 
-    expect(wrapper.vm.form.descricao).toBe('Sala 204')
+    const vm = wrapper.vm as unknown as {
+      form: { descricao: string }
+    }
+
+    expect(vm.form.descricao).toBe('Sala 204')
   })
 
   /* =========================
@@ -99,7 +115,6 @@ describe('RegisterStepLocation - cobertura completa', () => {
     const select = wrapper.find('select')
 
     await select.setValue('UNDB')
-
     await wrapper.vm.$nextTick()
 
     expect(fetch).toHaveBeenCalled()
@@ -115,10 +130,19 @@ describe('RegisterStepLocation - cobertura completa', () => {
   })
 
   it('habilita botão quando formulário é válido', async () => {
-    wrapper.vm.form.predio = 'UNDB'
-    wrapper.vm.form.lat = -2.53
-    wrapper.vm.form.lng = -44.30
-    wrapper.vm.form.datetime = '2026-01-01T10:00'
+    const vm = wrapper.vm as unknown as {
+      form: {
+        predio: string
+        lat: number | null
+        lng: number | null
+        datetime: string
+      }
+    }
+
+    vm.form.predio = 'UNDB'
+    vm.form.lat = -2.53
+    vm.form.lng = -44.30
+    vm.form.datetime = '2026-01-01T10:00'
 
     await wrapper.vm.$nextTick()
 
@@ -131,16 +155,28 @@ describe('RegisterStepLocation - cobertura completa', () => {
      📤 EMISSÕES
   ========================= */
   it('emite submit com dados corretos', async () => {
-    wrapper.vm.form.predio = 'UNDB'
-    wrapper.vm.form.lat = -2.53
-    wrapper.vm.form.lng = -44.30
-    wrapper.vm.form.datetime = '2026-01-01T10:00'
+    const vm = wrapper.vm as unknown as {
+      form: {
+        predio: string
+        lat: number | null
+        lng: number | null
+        datetime: string
+      }
+    }
+
+    vm.form.predio = 'UNDB'
+    vm.form.lat = -2.53
+    vm.form.lng = -44.30
+    vm.form.datetime = '2026-01-01T10:00'
 
     await wrapper.vm.$nextTick()
 
     await wrapper.find('.btn-primary').trigger('click')
 
-    expect(wrapper.emitted('submit')).toBeTruthy()
+    const events = wrapper.emitted('submit')
+
+    expect(events).toBeTruthy()
+    expect(events!.length).toBeGreaterThan(0)
   })
 
   it('emite back no botão superior', async () => {

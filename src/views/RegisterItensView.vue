@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, type RouteLocationRaw } from 'vue-router'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 
 import RegisterStepPhoto from '@/components/registrar/RegisterStepPhoto.vue'
@@ -13,12 +13,26 @@ const router = useRouter()
 type RegisterType = 'lost' | 'found'
 type CurrentView = 'selection' | 'photo' | 'details' | 'location'
 
+// ✅ NOVO TIPO
+type RegisterFormData = {
+  photo?: string | null
+  titulo?: string
+  descricao?: string
+  categoria?: string
+  predio?: string
+  lat?: number | null
+  lng?: number | null
+}
+
 const currentView = ref<CurrentView>('selection')
 const registerType = ref<RegisterType>('lost')
-const formData = ref<Record<string, any>>({})
 
+// ✅ SEM any
+const formData = ref<RegisterFormData>({})
+
+// ✅ SEM any
 function handleNavigate(item: string) {
-  const routesMap: Record<string, any> = {
+  const routesMap: Record<string, RouteLocationRaw> = {
     explorar: { name: 'explorar' },
     registrar: { name: 'registrar' },
     'meus-itens': { name: 'meus-itens' },
@@ -48,17 +62,21 @@ function handlePhotoNext(data: { photo: string | null }) {
   currentView.value = 'details'
 }
 
-function handleDetailsNext(data: Record<string, any>) {
-  formData.value = { ...formData.value, ...data }
+// ✅ SEM any
+function handleDetailsNext(data: { name: string; email: string; itemName: string; category: string; description: string; }) {
+  formData.value = { ...formData.value, titulo: data.itemName, descricao: data.description, categoria: data.category }
   currentView.value = 'location'
 }
 
-function handleSubmit(data: Record<string, any>) {
+// ✅ SEM any
+function handleSubmit(data: Partial<RegisterFormData>) {
   formData.value = { ...formData.value, ...data }
+
   console.log('Registro finalizado:', formData.value)
-  // TODO: chamar API
+
   currentView.value = 'selection'
   formData.value = {}
+
   router.push({ name: 'explorar' })
 }
 

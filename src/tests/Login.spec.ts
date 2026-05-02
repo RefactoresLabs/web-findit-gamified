@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { createRouter, createMemoryHistory, RouterLink } from 'vue-router'
 import Login from '@/views/LoginView.vue'
+import type { ComponentPublicInstance } from 'vue'
+
+type LoginVM = ComponentPublicInstance & {
+  email: string
+  password: string
+  showPassword: boolean
+  isLoading: boolean
+  rememberMe: boolean
+}
 
 const mockRouter = createRouter({
   history: createMemoryHistory(),
@@ -47,7 +56,7 @@ describe('LoginView.vue', () => {
     await wrapper.find('[data-testid="input-email"]').setValue('teste@undb.edu.br')
     await wrapper.find('[data-testid="input-password"]').setValue('senha123')
 
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm as LoginVM
 
     expect(vm.email).toBe('teste@undb.edu.br')
     expect(vm.password).toBe('senha123')
@@ -83,7 +92,7 @@ describe('LoginView.vue', () => {
 
   // ☑️ Checkbox lembrar-me
   it('checkbox lembrar-me atualiza rememberMe', async () => {
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm as LoginVM
     expect(vm.rememberMe).toBe(false)
 
     await wrapper.find('#remember-checkbox').setValue(true)
@@ -94,7 +103,7 @@ describe('LoginView.vue', () => {
   it('ativa loading ao submeter formulário', async () => {
     await wrapper.find('form').trigger('submit')
 
-    expect((wrapper.vm as any).isLoading).toBe(true)
+    expect((wrapper.vm as LoginVM).isLoading).toBe(true)
   })
 
   it('botão fica desabilitado durante loading', async () => {
@@ -117,7 +126,7 @@ describe('LoginView.vue', () => {
     vi.advanceTimersByTime(1500)
     await wrapper.vm.$nextTick()
 
-    expect((wrapper.vm as any).isLoading).toBe(false)
+    expect((wrapper.vm as LoginVM).isLoading).toBe(false)
     expect(wrapper.find('.btn-text').exists()).toBe(true)
     expect(wrapper.find('.btn-spinner').exists()).toBe(false)
   })
@@ -133,7 +142,7 @@ describe('LoginView.vue', () => {
 
   // 🧠 Estado inicial
   it('estado inicial está correto', () => {
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm as LoginVM
 
     expect(vm.email).toBe('')
     expect(vm.password).toBe('')

@@ -80,11 +80,19 @@
 import { reactive, computed, onMounted, watch } from 'vue'
 import L from 'leaflet'
 
-const props = defineProps<{ type: 'lost' | 'found' }>()
+defineProps<{ type: 'lost' | 'found' }>()
+
+type LocationData = {
+  predio: string
+  descricao: string
+  datetime: string
+  lat: number | null
+  lng: number | null
+}
 
 const emit = defineEmits<{
   back: []
-  submit: [data: any]
+  submit: [data: LocationData]
 }>()
 
 const form = reactive({
@@ -130,14 +138,14 @@ onMounted(() => {
     attribution: '&copy; OpenStreetMap'
   }).addTo(map)
 
-  delete (L.Icon.Default.prototype as any)._getIconUrl
+ delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
   })
 
-  map.on('click', (e: any) => {
+  map.on('click', (e: L.LeafletMouseEvent) => {
     const { lat, lng } = e.latlng
 
     form.lat = lat

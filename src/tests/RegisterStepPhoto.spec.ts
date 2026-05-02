@@ -1,17 +1,25 @@
-import { mount } from '@vue/test-utils'
+import { mount, VueWrapper } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import RegisterStepPhoto from '@/components/registrar/RegisterStepPhoto.vue'
 
 /* =========================
-   🔥 MOCK FileReader
+   🔥 MOCK FileReader TIPADO
 ========================= */
-class FileReaderMock {
-  result: any = null
-  onload: any
+class FileReaderMock implements Partial<FileReader> {
+  result: string | ArrayBuffer | null = null
+  onload: ((this: FileReader, ev: ProgressEvent<FileReader>) => unknown) | null = null
 
-  readAsDataURL(file: File) {
+  readAsDataURL(_file: File) {
     this.result = 'data:image/png;base64,fakeimage'
-    this.onload?.({ target: { result: this.result } })
+
+    if (this.onload) {
+      this.onload.call(
+        this as unknown as FileReader,
+        {
+          target: { result: this.result }
+        } as ProgressEvent<FileReader>
+      )
+    }
   }
 }
 
@@ -21,7 +29,8 @@ vi.stubGlobal('FileReader', FileReaderMock)
    🧪 TEST SUITE
 ========================= */
 describe('RegisterStepPhoto.vue', () => {
-  let wrapper: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let wrapper: VueWrapper<any> // 
 
   beforeEach(() => {
     wrapper = mount(RegisterStepPhoto, {
@@ -64,7 +73,7 @@ describe('RegisterStepPhoto.vue', () => {
   it('abre input ao clicar na área de upload', async () => {
     const input = wrapper.find('input[type="file"]')
 
-    const clickSpy = vi.spyOn(input.element, 'click')
+    const clickSpy = vi.spyOn(input.element as HTMLInputElement, 'click')
 
     await wrapper.find('.upload-area').trigger('click')
 
@@ -107,7 +116,6 @@ describe('RegisterStepPhoto.vue', () => {
      🗑 REMOVE IMAGE
   ========================= */
   it('remove imagem corretamente', async () => {
-    // seta imagem primeiro
     wrapper.vm.previewUrl = 'fake-url'
 
     await wrapper.vm.$nextTick()
@@ -127,8 +135,10 @@ describe('RegisterStepPhoto.vue', () => {
 
     await wrapper.find('.btn-primary').trigger('click')
 
-    expect(wrapper.emitted('next')).toBeTruthy()
-    expect(wrapper.emitted('next')?.[0]).toEqual([
+    const emitted = wrapper.emitted('next')
+    expect(emitted).toBeTruthy()
+
+    expect(emitted![0]).toEqual([
       { photo: 'fake-image-url' }
     ])
   })

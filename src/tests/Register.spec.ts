@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
+import type { ComponentPublicInstance } from 'vue'
 import Register from '@/views/RegisterUserView.vue'
 
 // Stub do router-link
@@ -9,16 +10,26 @@ const RouterLinkStub = {
   template: '<a :href="to"><slot /></a>',
 }
 
-function mountComponent(): VueWrapper {
+// ✅ Tipo do VM
+type RegisterVM = ComponentPublicInstance & {
+  name: string
+  email: string
+  phone: string
+  password: string
+  showPassword: boolean
+  isLoading: boolean
+}
+
+function mountComponent(): VueWrapper<RegisterVM> {
   return mount(Register, {
     global: {
       components: { RouterLink: RouterLinkStub },
     },
-  })
+  }) as VueWrapper<RegisterVM>
 }
 
 describe('RegisterView.vue', () => {
-  let wrapper: VueWrapper
+  let wrapper: VueWrapper<RegisterVM>
 
   beforeEach(() => {
     wrapper = mountComponent()
@@ -49,7 +60,7 @@ describe('RegisterView.vue', () => {
     await wrapper.find('[data-testid="input-phone"]').setValue('999999999')
     await wrapper.find('[data-testid="input-password"]').setValue('123456')
 
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm
 
     expect(vm.name).toBe('Chris')
     expect(vm.email).toBe('teste@email.com')
@@ -91,7 +102,7 @@ describe('RegisterView.vue', () => {
   it('ativa loading ao submeter formulário', async () => {
     await wrapper.find('form').trigger('submit')
 
-    expect((wrapper.vm as any).isLoading).toBe(true)
+    expect(wrapper.vm.isLoading).toBe(true)
   })
 
   it('botão fica desabilitado durante loading', async () => {
@@ -113,7 +124,7 @@ describe('RegisterView.vue', () => {
     vi.advanceTimersByTime(1500)
     await wrapper.vm.$nextTick()
 
-    expect((wrapper.vm as any).isLoading).toBe(false)
+    expect(wrapper.vm.isLoading).toBe(false)
     expect(wrapper.find('[data-testid="register-button"]').text()).toBe('Cadastrar')
   })
 
@@ -128,7 +139,7 @@ describe('RegisterView.vue', () => {
 
   // 🧠 Estado inicial
   it('estado inicial está correto', () => {
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm
 
     expect(vm.name).toBe('')
     expect(vm.email).toBe('')

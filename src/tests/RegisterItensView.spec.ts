@@ -1,7 +1,16 @@
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { nextTick } from 'vue'
+import { nextTick, type ComponentPublicInstance } from 'vue'
 import RegisterView from '@/views/RegisterItensView.vue'
+
+/* =========================
+   🔥 TIPAGEM DO VM
+========================= */
+type RegisterItensVM = ComponentPublicInstance & {
+  currentView: 'selection' | 'photo' | 'details' | 'location'
+  formData: Record<string, unknown>
+  goBack: () => void
+}
 
 /* =========================
    🔥 MOCK ROUTER
@@ -74,7 +83,7 @@ vi.mock('@/components/registrar/RegisterStepLocation.vue', () => ({
    🧪 TESTS
 ========================= */
 describe('RegisterItensView - fluxo completo', () => {
-  let wrapper: any
+  let wrapper: VueWrapper<RegisterItensVM>
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -83,33 +92,23 @@ describe('RegisterItensView - fluxo completo', () => {
       global: {
         stubs: ['router-link'],
       },
-    })
+    }) as VueWrapper<RegisterItensVM>
   })
 
-  /* =========================
-     📍 INIT
-  ========================= */
   it('inicia no selection', () => {
     expect(wrapper.html()).toContain('select')
   })
 
-  /* =========================
-     📸 FLOW STEP 1
-  ========================= */
   it('seleciona tipo e vai para photo', async () => {
     await wrapper.find('.select').trigger('click')
     expect(wrapper.vm.currentView).toBe('photo')
   })
 
-  /* =========================
-     📸 PHOTO → DETAILS
-  ========================= */
   it('vai de photo para details', async () => {
     wrapper.vm.currentView = 'photo'
     await nextTick()
 
     await wrapper.find('.next').trigger('click')
-
     expect(wrapper.vm.currentView).toBe('details')
   })
 
@@ -118,38 +117,27 @@ describe('RegisterItensView - fluxo completo', () => {
     await nextTick()
 
     await wrapper.find('.back').trigger('click')
-
     expect(wrapper.vm.currentView).toBe('selection')
   })
 
-  /* =========================
-     🧾 DETAILS → LOCATION
-  ========================= */
   it('vai de details para location', async () => {
     wrapper.vm.currentView = 'details'
     await nextTick()
 
     await wrapper.find('.next').trigger('click')
-
     expect(wrapper.vm.currentView).toBe('location')
   })
 
-  /* =========================
-     📍 FINALIZAÇÃO
-  ========================= */
   it('finaliza e chama router.push', async () => {
     wrapper.vm.currentView = 'location'
     await nextTick()
 
     await wrapper.find('.submit').trigger('click')
 
-    expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' }) // ✅ CORRIGIDO
+    expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' })
     expect(wrapper.vm.currentView).toBe('selection')
   })
 
-  /* =========================
-     🔙 BACK FLOW
-  ========================= */
   it('goBack funciona corretamente', () => {
     wrapper.vm.currentView = 'details'
 
@@ -160,9 +148,6 @@ describe('RegisterItensView - fluxo completo', () => {
     expect(wrapper.vm.currentView).toBe('selection')
   })
 
-  /* =========================
-     🧭 SIDEBAR
-  ========================= */
   it('sidebar reset register', async () => {
     await wrapper.find('.nav-register').trigger('click')
 
@@ -173,6 +158,6 @@ describe('RegisterItensView - fluxo completo', () => {
   it('sidebar navega para explorar', async () => {
     await wrapper.find('.nav-explore').trigger('click')
 
-    expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' }) // ✅ CORRIGIDO
+    expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' })
   })
 })

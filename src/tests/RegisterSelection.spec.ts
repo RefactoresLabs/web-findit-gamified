@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import RegisterSelection from '@/components/registrar/RegisterSelection.vue'
 
 describe('RegisterSelection - cobertura completa', () => {
-  let wrapper: any
+  let wrapper: VueWrapper
 
   beforeEach(() => {
     wrapper = mount(RegisterSelection)
@@ -34,28 +34,32 @@ describe('RegisterSelection - cobertura completa', () => {
     const buttons = wrapper.findAll('button')
 
     expect(buttons.length).toBe(2)
-    expect(buttons[0].text()).toContain('Registrar Perda')
-    expect(buttons[1].text()).toContain('Registrar Achado')
+    expect(buttons[0]!.text()).toContain('Registrar Perda')
+    expect(buttons[1]!.text()).toContain('Registrar Achado')
   })
 
   // ✅ EMIT LOST
   it('emite evento "lost" ao clicar em Registrar Perda', async () => {
-    const button = wrapper.findAll('button')[0]
+    const buttons = wrapper.findAll('button')
+    expect(buttons.length).toBeGreaterThan(0)
 
+    const button = buttons[0]!
     await button.trigger('click')
 
     expect(wrapper.emitted('select')).toBeTruthy()
-    expect(wrapper.emitted('select')[0]).toEqual(['lost'])
+    expect(wrapper.emitted('select')![0]).toEqual(['lost'])
   })
 
   // ✅ EMIT FOUND
   it('emite evento "found" ao clicar em Registrar Achado', async () => {
-    const button = wrapper.findAll('button')[1]
+    const buttons = wrapper.findAll('button')
+    expect(buttons.length).toBeGreaterThan(1)
 
+    const button = buttons[1]!
     await button.trigger('click')
 
     expect(wrapper.emitted('select')).toBeTruthy()
-    expect(wrapper.emitted('select')[0]).toEqual(['found'])
+    expect(wrapper.emitted('select')![0]).toEqual(['found'])
   })
 
   // ✅ ICONES
@@ -78,7 +82,8 @@ describe('RegisterSelection - cobertura completa', () => {
   it('botões possuem classes corretas', () => {
     const buttons = wrapper.findAll('.btn')
 
-    expect(buttons[0].classes()).toContain('lost')
-    expect(buttons[1].classes()).toContain('found')
+    expect(buttons.length).toBe(2)
+    expect(buttons[0]!.classes()).toContain('lost')
+    expect(buttons[1]!.classes()).toContain('found')
   })
 })

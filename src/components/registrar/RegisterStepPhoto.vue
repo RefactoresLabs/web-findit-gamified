@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = defineProps<{ type: 'lost' | 'found' }>()
+defineProps<{ type: 'lost' | 'found' }>()
 defineEmits<{ back: []; next: [data: { photo: string | null }] }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)

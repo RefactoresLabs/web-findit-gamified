@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
+import type { ComponentPublicInstance } from 'vue'
 
 function mountComponent(props = {}): VueWrapper {
   return mount(AppSidebar, { props })
@@ -52,7 +53,7 @@ describe('AppSidebar.vue', () => {
 
   // 🧠 Estado inicial
   it('inicia expandido', () => {
-    expect((wrapper.vm as any).isCollapsed).toBe(false)
+    expect((wrapper.vm as ComponentPublicInstance & { isCollapsed: boolean }).isCollapsed).toBe(false)
   })
 
   it('Explorar é o item ativo por padrão', () => {
@@ -62,13 +63,13 @@ describe('AppSidebar.vue', () => {
   // 🔄 Toggle
   it('toggle colapsa o sidebar', async () => {
     await wrapper.find('[data-testid="sidebar-toggle"]').trigger('click')
-    expect((wrapper.vm as any).isCollapsed).toBe(true)
+    expect((wrapper.vm as ComponentPublicInstance & { isCollapsed: boolean }).isCollapsed).toBe(true)
   })
 
   it('toggle expande o sidebar após colapsar', async () => {
     await wrapper.find('[data-testid="sidebar-toggle"]').trigger('click')
     await wrapper.find('[data-testid="sidebar-toggle"]').trigger('click')
-    expect((wrapper.vm as any).isCollapsed).toBe(false)
+    expect((wrapper.vm as ComponentPublicInstance & { isCollapsed: boolean }).isCollapsed).toBe(false)
   })
 
   it('adiciona classe collapsed ao container quando colapsado', async () => {
