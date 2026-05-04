@@ -13,6 +13,7 @@ type CurrentView = 'feed' | 'detail' | 'map'
 
 const currentView = ref<CurrentView>('feed')
 const selectedItemId = ref<number | null>(null)
+const selectedItemType = ref<'perdido' | 'encontrado'>('perdido')
 
 function handleNavigate(item: string) {
   const routesMap: Record<string, RouteLocationRaw> = {
@@ -35,8 +36,9 @@ function handleLogout() {
   window.location.href = '/'
 }
 
-function showDetail(itemId: number) {
+function showDetail(itemId: number, itemType: 'perdido' | 'encontrado') {
   selectedItemId.value = itemId
+  selectedItemType.value = itemType
   currentView.value = 'detail'
 }
 
@@ -63,6 +65,7 @@ function showMap() {
       <ExplorarItemDetail
         v-if="currentView === 'detail'"
         :item-id="selectedItemId!"
+        :item-type="selectedItemType"
         @back="showFeed"
       />
       <ExplorarMap v-if="currentView === 'map'" @back="showFeed" />

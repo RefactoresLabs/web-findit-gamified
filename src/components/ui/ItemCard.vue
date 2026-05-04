@@ -1,27 +1,30 @@
 <script setup lang="ts">
-import type { Item } from '@/types/item'
+import type { FeedItem } from '@/types/item'
 import CategoryChip from '@/components/ui/CategoryChip.vue'
 
-defineProps<{ item: Item }>()
+defineProps<{ item: FeedItem }>()
 defineEmits<{ select: [id: number] }>()
 </script>
 
 <template>
   <div class="item-card" data-testid="item-card" @click="$emit('select', item.id)">
     <img
-      :src="item.foto"
-      :alt="item.nome"
+      v-if="item.imageUrl"
+      :src="item.imageUrl"
+      :alt="item.name"
       class="item-card-image"
       data-testid="item-card-image"
     />
+    <div v-else class="item-card-placeholder" data-testid="item-card-placeholder">
+      <i class="pi pi-image" />
+    </div>
     <div class="item-card-body">
-      <p class="item-card-name" data-testid="item-card-name">{{ item.nome }}</p>
+      <p class="item-card-name" data-testid="item-card-name">{{ item.name }}</p>
       <p class="item-card-local" data-testid="item-card-local">
         <i class="pi pi-map-marker" />
-        {{ item.local }}
+        {{ item.locationName }}
       </p>
-      <p class="item-card-data" data-testid="item-card-data">{{ item.data }}</p>
-      <CategoryChip :categoria="item.categoria" />
+      <CategoryChip :categoria="item.categoryName" />
     </div>
   </div>
 </template>
@@ -45,6 +48,17 @@ defineEmits<{ select: [id: number] }>()
   height: 200px;
   object-fit: cover;
   display: block;
+}
+
+.item-card-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  color: #d1d5db;
+  font-size: 2rem;
 }
 
 .item-card-body {
@@ -72,11 +86,5 @@ defineEmits<{ select: [id: number] }>()
 
 .item-card-local .pi {
   font-size: 0.75rem;
-}
-
-.item-card-data {
-  font-size: 0.8125rem;
-  color: #6b7280;
-  margin: 0;
 }
 </style>

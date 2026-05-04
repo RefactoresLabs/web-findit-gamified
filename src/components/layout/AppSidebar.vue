@@ -14,7 +14,7 @@ const emit = defineEmits<{
   logout: []
 }>()
 
-const { currentUser } = useAuth()
+const { userEmail, logout: authLogout } = useAuth()
 const isCollapsed = ref(false)
 
 function toggleSidebar() {
@@ -26,6 +26,7 @@ function navigate(item: string) {
 }
 
 function logout() {
+  authLogout()
   emit('logout')
 }
 
@@ -67,8 +68,7 @@ const navItems = [
     <div class="sidebar-footer">
       <div class="user-info">
         <div v-if="!isCollapsed" class="user-details">
-          <span data-testid="user-name" class="user-name">{{ currentUser.nome }}</span>
-          <span data-testid="user-email" class="user-email">{{ currentUser.email }}</span>
+          <span data-testid="user-email" class="user-email">{{ userEmail ?? '' }}</span>
         </div>
         <button data-testid="logout-button" class="logout-button" aria-label="Logout" @click="logout">
           <i class="pi pi-sign-out" aria-hidden="true"></i>

@@ -1,88 +1,185 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ExplorarItemDetail from '@/components/explorar/ExplorarItemDetail.vue'
+import type { ItemDetail } from '@/types/item'
+import { ref } from 'vue'
 
-describe('ExplorarItemDetail.vue', () => {
-  function mountComponent(itemId = 1) {
-    return mount(ExplorarItemDetail, { props: { itemId } })
+const mockLostDetail: ItemDetail = {
+  id: 1,
+  name: 'MacBook Pro 14',
+  description: 'Notebook perdido perto da entrada',
+  userName: 'Maria Silva',
+  userEmail: 'maria@undb.edu.br',
+  userPhone: '98988887777',
+  categoryName: 'Material Escolar',
+  locationName: 'Sala 206',
+  buildingName: 'Centro Universitário UNDB',
+  buildingCep: '65075441',
+  buildingNeighborhood: 'Jardim Renascença',
+  buildingStreet: 'Coronel Colares Moreira',
+  leftLocationName: null,
+  leftBuildingName: null,
+  imageUrls: ['http://example.com/macbook.jpg'],
+  type: 'perdido',
+}
+
+const mockFoundDetail: ItemDetail = {
+  id: 3,
+  name: 'Carteira de Couro',
+  description: 'Carteira marrom encontrada',
+  userName: 'Maria Silva',
+  userEmail: 'maria@undb.edu.br',
+  userPhone: '98988887777',
+  categoryName: 'Acessório Pessoal',
+  locationName: 'Recepção',
+  buildingName: 'Centro Universitário UNDB',
+  buildingCep: '65075441',
+  buildingNeighborhood: 'Jardim Renascença',
+  buildingStreet: 'Coronel Colares Moreira',
+  leftLocationName: 'Refeitório',
+  leftBuildingName: 'Centro Universitário UNDB',
+  imageUrls: [],
+  type: 'encontrado',
+}
+
+const mockFetchItem = vi.fn()
+const mockItem = ref<ItemDetail | null>(null)
+const mockLoading = ref(false)
+const mockError = ref<string | null>(null)
+
+vi.mock('@/composables/useItemDetail', () => ({
+  useItemDetail: () => ({
+    item: mockItem,
+    loading: mockLoading,
+    error: mockError,
+    fetchItem: mockFetchItem,
+  }),
+}))
+
+describe('ExplorarItemDetail.vue — item perdido', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    mockItem.value = mockLostDetail
+    mockLoading.value = false
+    mockError.value = null
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  async function mountComponent(itemId = 1, itemType: 'perdido' | 'encontrado' = 'perdido') {
+    const { default: ExplorarItemDetail } = await import(
+      '@/components/explorar/ExplorarItemDetail.vue'
+    )
+    return mount(ExplorarItemDetail, { props: { itemId, itemType } })
   }
 
-  // Renderização geral
-  it('renderiza o botão Voltar', () => {
-    const wrapper = mountComponent()
+  it('chama fetchItem ao montar com id e tipo', async () => {
+    await mountComponent(1, 'perdido')
+    expect(mockFetchItem).toHaveBeenCalledWith(1, 'perdido')
+  })
+
+  it('renderiza botão Voltar', async () => {
+    const wrapper = await mountComponent()
     expect(wrapper.find('[data-testid="btn-voltar"]').exists()).toBe(true)
   })
 
-  it('botão Voltar contém texto "Voltar"', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="btn-voltar"]').text()).toContain('Voltar')
+  it('renderiza nome do item', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-nome"]').text()).toBe('MacBook Pro 14')
   })
 
-  it('renderiza a foto do item', () => {
-    const wrapper = mountComponent()
+  it('renderiza descrição', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-descricao"]').text()).toContain('Notebook perdido')
+  })
+
+  it('renderiza local + prédio', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-local"]').text()).toContain('Sala 206')
+    expect(wrapper.find('[data-testid="detail-local"]').text()).toContain('Centro Universitário UNDB')
+  })
+
+  it('renderiza categoria', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-categoria"]').text()).toContain('Material Escolar')
+  })
+
+  it('renderiza info do usuário', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-user-name"]').text()).toContain('Maria Silva')
+    expect(wrapper.find('[data-testid="detail-user-email"]').text()).toContain('maria@undb.edu.br')
+    expect(wrapper.find('[data-testid="detail-user-phone"]').text()).toContain('98988887777')
+  })
+
+  it('renderiza imagem quando existe', async () => {
+    const wrapper = await mountComponent()
     const img = wrapper.find('[data-testid="detail-foto"]')
     expect(img.exists()).toBe(true)
-    expect(img.attributes('src')).toBe('https://cdn.awsli.com.br/600x700/2652/2652463/produto/292219387/1-wcfdr8pksm.jpg')
+    expect(img.attributes('src')).toBe('http://example.com/macbook.jpg')
   })
 
-  it('renderiza o nome do item em h1', () => {
-    const wrapper = mountComponent()
-    const nome = wrapper.find('[data-testid="detail-nome"]')
-    expect(nome.exists()).toBe(true)
-    expect(nome.text()).toBe('MacBook Pro 14"')
-    expect(nome.element.tagName).toBe('H1')
+  it('não renderiza seção left_building_space para item perdido', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-left-location"]').exists()).toBe(false)
   })
 
-  it('renderiza a descrição do item', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="detail-descricao"]').text()).toContain(
-      'MacBook Pro 14 polegadas',
-    )
-  })
-
-  it('renderiza o local nos metadados', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="detail-local"]').text()).toContain('Biblioteca Central')
-  })
-
-  it('renderiza a data nos metadados', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="detail-data"]').text()).toContain('12 Mar 2026')
-  })
-
-  it('renderiza o reportadoPor nos metadados', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="detail-reportado-por"]').text()).toContain('Maria Silva')
-  })
-
-  it('renderiza CategoryChip com a categoria correta', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="category-chip"]').text()).toContain('Eletrônico')
-  })
-
-  it('renderiza o separador', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="detail-separator"]').exists()).toBe(true)
-  })
-
-  it('renderiza o status do item', () => {
-    const wrapper = mountComponent()
-    expect(wrapper.find('[data-testid="detail-status"]').text()).toContain(
-      'Aguardando alguém encontrar este item.',
-    )
-  })
-
-  // Emits
-  it('emite back ao clicar no botão Voltar', async () => {
-    const wrapper = mountComponent()
+  it('emite back ao clicar Voltar', async () => {
+    const wrapper = await mountComponent()
     await wrapper.find('[data-testid="btn-voltar"]').trigger('click')
     expect(wrapper.emitted('back')).toBeTruthy()
   })
+})
 
-  // Item diferente (id=2)
-  it('carrega dados do item correto quando itemId muda', () => {
-    const wrapper = mountComponent(2)
-    expect(wrapper.find('[data-testid="detail-nome"]').text()).toBe('Caderno de Cálculo III')
-    expect(wrapper.find('[data-testid="detail-local"]').text()).toContain('Lab. Informática 3')
+describe('ExplorarItemDetail.vue — item encontrado', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockItem.value = mockFoundDetail
+    mockLoading.value = false
+    mockError.value = null
+  })
+
+  async function mountComponent() {
+    const { default: ExplorarItemDetail } = await import(
+      '@/components/explorar/ExplorarItemDetail.vue'
+    )
+    return mount(ExplorarItemDetail, { props: { itemId: 3, itemType: 'encontrado' as const } })
+  }
+
+  it('renderiza seção left_building_space para item encontrado', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-left-location"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="detail-left-location"]').text()).toContain('Refeitório')
+  })
+})
+
+describe('ExplorarItemDetail.vue — loading state', () => {
+  it('mostra loading', async () => {
+    mockItem.value = null
+    mockLoading.value = true
+    mockError.value = null
+
+    const { default: ExplorarItemDetail } = await import(
+      '@/components/explorar/ExplorarItemDetail.vue'
+    )
+    const wrapper = mount(ExplorarItemDetail, { props: { itemId: 1, itemType: 'perdido' as const } })
+
+    expect(wrapper.find('[data-testid="loading-indicator"]').exists()).toBe(true)
+  })
+})
+
+describe('ExplorarItemDetail.vue — error state', () => {
+  it('mostra mensagem de erro', async () => {
+    mockItem.value = null
+    mockLoading.value = false
+    mockError.value = 'Item não encontrado'
+
+    const { default: ExplorarItemDetail } = await import(
+      '@/components/explorar/ExplorarItemDetail.vue'
+    )
+    const wrapper = mount(ExplorarItemDetail, { props: { itemId: 999, itemType: 'perdido' as const } })
+
+    expect(wrapper.find('[data-testid="error-message"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="error-message"]').text()).toContain('Item não encontrado')
   })
 })
