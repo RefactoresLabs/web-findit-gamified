@@ -47,15 +47,11 @@
 
         <div class="field">
           <label>Categoria <span class="required">*</span></label>
-          <select v-model="form.category">
-            <option value="" disabled>Selecione uma categoria</option>
-            <option value="documentos">Documentos</option>
-            <option value="eletronicos">Eletrônicos</option>
-            <option value="acessorios">Acessórios</option>
-            <option value="roupas">Roupas</option>
-            <option value="calcados">Calçados</option>
-            <option value="bolsas">Bolsas e Mochilas</option>
-            <option value="outros">Outros</option>
+          <select v-model.number="form.category_id">
+            <option value="0" disabled>Selecione uma categoria</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </option>
           </select>
         </div>
 
@@ -89,6 +85,7 @@
 
 <script setup lang="ts">
 import { reactive, computed } from 'vue'
+import { categories } from '@/data/static'
 
 const props = defineProps<{
   type: 'lost' | 'found'
@@ -102,14 +99,14 @@ const form = reactive({
   name: props.userName ?? '',
   email: props.userEmail ?? '',
   itemName: '',
-  category: '',
-  description: ''
+  category_id: 0,
+  description: '',
 })
 
 const isValid = computed(() =>
   form.itemName.trim() !== '' &&
-  form.category !== '' &&
-  form.description.trim() !== ''
+  form.category_id > 0 &&
+  form.description.trim() !== '',
 )
 </script>
 

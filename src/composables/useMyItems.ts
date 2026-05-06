@@ -3,13 +3,13 @@ import { apiClient, ApiError } from '@/services/api'
 import type { LostItemSummary, FoundItemSummary } from '@/types/api'
 import type { FeedItem } from '@/types/item'
 
-function normalizeLostItem(item: LostItemSummary): FeedItem {
+function normalizeMyLostItem(item: LostItemSummary & { found_building_space?: { name: string } }): FeedItem {
   return {
     id: item.id,
     name: item.name,
     userName: item.user.name,
     categoryName: item.category.name,
-    locationName: item.lost_building_space.name,
+    locationName: item.lost_building_space?.name ?? item.found_building_space?.name ?? '',
     imageUrl: item.image?.url ?? '',
     type: 'perdido',
   }
@@ -27,22 +27,22 @@ function normalizeFoundItem(item: FoundItemSummary): FeedItem {
   }
 }
 
-const lostItems = ref<FeedItem[]>([])
-const foundItems = ref<FeedItem[]>([])
+const myLostItems = ref<FeedItem[]>([])
+const myFoundItems = ref<FeedItem[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-export function useItems() {
-  async function fetchItems() {
+export function useMyItems() {
+  async function fetchMyItems() {
     loading.value = true
     error.value = null
     try {
       const [lostRes, foundRes] = await Promise.all([
-        apiClient.get<LostItemSummary[]>('/lost-items'),
-        apiClient.get<FoundItemSummary[]>('/found-items'),
+        apiClient.get<LostItemSummary[]>('/my-lost-items'),
+        apiClient.get<FoundItemSummary[]>('/my-found-items'),
       ])
-      lostItems.value = lostRes.map(normalizeLostItem)
-      foundItems.value = foundRes.map(normalizeFoundItem)
+      myLostItems.value = lostRes.map(normalizeMyLostItem)
+      myFoundItems.value = foundRes.map(normalizeFoundItem)
     } catch (e) {
       error.value = e instanceof ApiError ? e.message : 'Erro ao carregar itens'
     } finally {
@@ -50,5 +50,5 @@ export function useItems() {
     }
   }
 
-  return { lostItems, foundItems, loading, error, fetchItems }
+  return { myLostItems, myFoundItems, loading, error, fetchMyItems }
 }

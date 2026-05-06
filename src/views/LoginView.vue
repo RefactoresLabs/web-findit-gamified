@@ -1,21 +1,30 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { login } = useAuth()
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const rememberMe = ref(false)
+const errorMessage = ref('')
 
-function handleLogin() {
+async function handleLogin() {
+  errorMessage.value = ''
   isLoading.value = true
-  setTimeout(() => {
-    isLoading.value = false
+  try {
+    await login(email.value, password.value)
     router.push('/explorar')
-  }, 1500)
+  } catch (err: unknown) {
+    const error = err as { message?: string }
+    errorMessage.value = error.message ?? 'Erro ao fazer login'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const floatingItems = [
@@ -135,6 +144,11 @@ const floatingItems = [
               <span>Lembrar de mim</span>
             </label>
           </div>
+
+          <!-- Erro -->
+          <p v-if="errorMessage" data-testid="error-message" class="error-message">
+            {{ errorMessage }}
+          </p>
 
           <!-- Botão de Login -->
           <button id="login-btn" type="submit" class="login-btn" :class="{ loading: isLoading }" :disabled="isLoading" data-testid="login-button">
@@ -595,6 +609,18 @@ const floatingItems = [
   border-left: none;
   transform: rotate(45deg) translateY(-1px);
   display: block;
+}
+
+/* Erro */
+.error-message {
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 0.5rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
 }
 
 /* Botão de Login */

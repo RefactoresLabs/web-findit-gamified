@@ -7,30 +7,28 @@ import RegisterStepPhoto from '@/components/registrar/RegisterStepPhoto.vue'
 import RegisterStepDetails from '@/components/registrar/RegisterStepDetails.vue'
 import RegisterStepLocation from '@/components/registrar/RegisterStepLocation.vue'
 import RegisterSelection from '@/components/registrar/RegisterSelection.vue'
+import { useRegisterItem } from '@/composables/useRegisterItem'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { uploadImage, createLostItem, createFoundItem, loading: submitting, error: submitError } = useRegisterItem()
+const { userEmail, userName } = useAuth()
 
 type RegisterType = 'lost' | 'found'
 type CurrentView = 'selection' | 'photo' | 'details' | 'location'
 
-// ✅ NOVO TIPO
 type RegisterFormData = {
   photo?: string | null
-  titulo?: string
-  descricao?: string
-  categoria?: string
-  predio?: string
-  lat?: number | null
-  lng?: number | null
+  file?: File | null
+  itemName?: string
+  description?: string
+  category_id?: number
 }
 
 const currentView = ref<CurrentView>('selection')
 const registerType = ref<RegisterType>('lost')
-
-// ✅ SEM any
 const formData = ref<RegisterFormData>({})
 
-// ✅ SEM any
 function handleNavigate(item: string) {
   const routesMap: Record<string, RouteLocationRaw> = {
     explorar: { name: 'explorar' },
@@ -57,27 +55,55 @@ function selectType(type: RegisterType) {
   currentView.value = 'photo'
 }
 
-function handlePhotoNext(data: { photo: string | null }) {
-  formData.value = { ...formData.value, ...data }
+function handlePhotoNext(data: { photo: string | null; file: File | null }) {
+  formData.value = { ...formData.value, photo: data.photo, file: data.file }
   currentView.value = 'details'
 }
 
-// ✅ SEM any
-function handleDetailsNext(data: { name: string; email: string; itemName: string; category: string; description: string; }) {
-  formData.value = { ...formData.value, titulo: data.itemName, descricao: data.description, categoria: data.category }
+function handleDetailsNext(data: { itemName: string; category_id: number; description: string }) {
+  formData.value = {
+    ...formData.value,
+    itemName: data.itemName,
+    category_id: data.category_id,
+    description: data.description,
+  }
   currentView.value = 'location'
 }
 
-// ✅ SEM any
-function handleSubmit(data: Partial<RegisterFormData>) {
-  formData.value = { ...formData.value, ...data }
+async function handleSubmit(data: { building_space_id: number; left_building_space_id: number }) {
+  try {
+    let imageUrls: string[] = []
 
-  console.log('Registro finalizado:', formData.value)
+    if (formData.value.file) {
+      const url = await uploadImage(formData.value.file)
+      imageUrls = [url]
+    }
 
-  currentView.value = 'selection'
-  formData.value = {}
+    if (registerType.value === 'lost') {
+      await createLostItem({
+        name: formData.value.itemName!,
+        description: formData.value.description!,
+        category_id: formData.value.category_id!,
+        lost_building_space_id: data.building_space_id,
+        image_urls: imageUrls.length > 0 ? imageUrls : undefined,
+      })
+    } else {
+      await createFoundItem({
+        name: formData.value.itemName!,
+        description: formData.value.description!,
+        category_id: formData.value.category_id!,
+        found_building_space_id: data.building_space_id,
+        left_building_space_id: data.left_building_space_id,
+        image_urls: imageUrls.length > 0 ? imageUrls : undefined,
+      })
+    }
 
-  router.push({ name: 'explorar' })
+    currentView.value = 'selection'
+    formData.value = {}
+    router.push({ name: 'explorar' })
+  } catch {
+    // error already set by composable
+  }
 }
 
 function goBack() {
@@ -105,8 +131,8 @@ function goBack() {
       <RegisterStepDetails
         v-else-if="currentView === 'details'"
         :type="registerType"
-        :user-name="'Maria Silva'"
-        :user-email="'aluno@universidade.com'"
+        :user-name="userName ?? ''"
+        :user-email="userEmail ?? ''"
         @back="goBack"
         @next="handleDetailsNext"
       />
@@ -116,6 +142,15 @@ function goBack() {
         @back="goBack"
         @submit="handleSubmit"
       />
+
+      <div v-if="submitting" class="submitting-overlay" data-testid="submitting-indicator">
+        <i class="pi pi-spin pi-spinner" />
+        <p>Registrando item...</p>
+      </div>
+
+      <div v-if="submitError" class="submit-error" data-testid="submit-error">
+        <p>{{ submitError }}</p>
+      </div>
     </main>
   </div>
 </template>
@@ -134,5 +169,30 @@ function goBack() {
 .register-main {
   flex: 1;
   overflow-y: auto;
+  position: relative;
+}
+
+.submitting-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #6b7280;
+  z-index: 10;
+}
+
+.submitting-overlay i {
+  font-size: 2rem;
+}
+
+.submit-error {
+  text-align: center;
+  padding: 1rem;
+  color: #ef4444;
+  font-size: 0.875rem;
 }
 </style>

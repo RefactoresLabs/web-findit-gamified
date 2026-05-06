@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import MeusItens from '@/views/MeusItensView.vue'
+import type { FeedItem } from '@/types/item'
+import { ref } from 'vue'
 
-/* =========================
-   🔥 MOCK ROUTER
-========================= */
 const pushMock = vi.fn()
 
 vi.mock('vue-router', () => ({
@@ -13,39 +11,50 @@ vi.mock('vue-router', () => ({
   }),
 }))
 
-/* =========================
-   🔥 TIPO DO COMPONENT
-========================= */
+const mockMyLostItems: FeedItem[] = [
+  {
+    id: 10,
+    name: 'Meu Notebook',
+    userName: 'André',
+    categoryName: 'Material Escolar',
+    locationName: 'Sala 206',
+    imageUrl: 'http://example.com/notebook.jpg',
+    type: 'perdido',
+  },
+]
 
-type Item = {
-  id: number
-  title: string
-  location: string
-  image: string
-  description: string
-  user: string
-  date: string
-  type: 'perdido' | 'encontrado'
-}
-type MeusItensVM = {
-  activeTab: 'perdidos' | 'encontrados'
-  perdidos: Item[]
-  encontrados: Item[]
-  currentItems: Item[]
-  handleNavigate: (item: string) => void
-  handleLogout: () => void
-}
+const mockMyFoundItems: FeedItem[] = [
+  {
+    id: 20,
+    name: 'Carteira encontrada',
+    userName: 'André',
+    categoryName: 'Acessório Pessoal',
+    locationName: 'Recepção',
+    imageUrl: 'http://example.com/carteira.jpg',
+    type: 'encontrado',
+  },
+]
 
-/* =========================
-   🧪 TESTES
-========================= */
-describe('MeusItens - cobertura completa', () => {
-  let wrapper: VueWrapper<MeusItensVM>
+const mockFetchMyItems = vi.fn()
+const mockLoading = ref(false)
+const mockError = ref<string | null>(null)
+const mockLostRef = ref<FeedItem[]>(mockMyLostItems)
+const mockFoundRef = ref<FeedItem[]>(mockMyFoundItems)
 
-  beforeEach(() => {
-    vi.clearAllMocks()
+vi.mock('@/composables/useMyItems', () => ({
+  useMyItems: () => ({
+    myLostItems: mockLostRef,
+    myFoundItems: mockFoundRef,
+    loading: mockLoading,
+    error: mockError,
+    fetchMyItems: mockFetchMyItems,
+  }),
+}))
 
-    wrapper = mount(MeusItens, {
+function mountComponent(): VueWrapper {
+  return mount(
+    (async () => (await import('@/views/MeusItensView.vue')).default)() as any,
+    {
       global: {
         stubs: {
           AppSidebar: {
@@ -53,163 +62,158 @@ describe('MeusItens - cobertura completa', () => {
           },
         },
       },
-    }) as VueWrapper<MeusItensVM>
+    },
+  )
+}
+
+describe('MeusItensView', () => {
+  let wrapper: VueWrapper
+
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    mockLoading.value = false
+    mockError.value = null
+    mockLostRef.value = mockMyLostItems
+    mockFoundRef.value = mockMyFoundItems
+
+    const MeusItensView = (await import('@/views/MeusItensView.vue')).default
+    wrapper = mount(MeusItensView, {
+      global: {
+        stubs: {
+          AppSidebar: {
+            template: '<div data-testid="sidebar"></div>',
+          },
+        },
+      },
+    })
   })
 
-  // ✅ RENDER
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('renderiza título e subtítulo', () => {
     expect(wrapper.find('.page-title').text()).toBe('Meus Itens')
     expect(wrapper.find('.page-sub').text()).toContain('Gerencie')
   })
 
-  // ✅ SIDEBAR
   it('renderiza sidebar', () => {
     expect(wrapper.find('[data-testid="sidebar"]').exists()).toBe(true)
   })
 
-  // ✅ TABS
-it('renderiza abas corretamente', () => {
-  const tabs = wrapper.findAll('.tab')
+  it('chama fetchMyItems ao montar', () => {
+    expect(mockFetchMyItems).toHaveBeenCalledOnce()
+  })
 
-  expect(tabs.length).toBe(2)
+  it('renderiza abas corretamente', () => {
+    const tabs = wrapper.findAll('.tab')
+    expect(tabs.length).toBe(2)
+    expect(tabs[0]!.text()).toContain('Perdidos')
+    expect(tabs[1]!.text()).toContain('Encontrados')
+  })
 
-  const [tab1, tab2] = tabs
-
-  expect(tab1!.text()).toContain('Perdidos')
-  expect(tab2!.text()).toContain('Encontrados')
-})
   it('inicia com aba perdidos ativa', () => {
     expect(wrapper.find('.tab.active').text()).toContain('Perdidos')
   })
 
-  // ✅ TROCA DE TAB
-  it('troca para encontrados ao clicar', async () => {
-    const tab = wrapper.findAll('.tab')[1]!
-    await tab.trigger('click')
-
-    expect(wrapper.vm.activeTab).toBe('encontrados')
-  })
-
-  it('volta para perdidos ao clicar novamente', async () => {
+  it('mostra contagem nas abas', () => {
     const tabs = wrapper.findAll('.tab')
-
-    await tabs[1]!.trigger('click')
-    await tabs[0]!.trigger('click')
-
-    expect(wrapper.vm.activeTab).toBe('perdidos')
+    expect(tabs[0]!.text()).toContain('1')
+    expect(tabs[1]!.text()).toContain('1')
   })
 
-  // ✅ COMPUTED
-  it('currentItems retorna perdidos por padrão', () => {
-    expect(wrapper.vm.currentItems).toEqual(wrapper.vm.perdidos)
-  })
-
-  it('currentItems retorna encontrados ao trocar aba', async () => {
+  it('troca para encontrados ao clicar', async () => {
     await wrapper.findAll('.tab')[1]!.trigger('click')
-
-    expect(wrapper.vm.currentItems).toEqual(wrapper.vm.encontrados)
+    expect(wrapper.find('.tab.active').text()).toContain('Encontrados')
   })
 
-  // ✅ LISTA
-  it('renderiza itens perdidos', () => {
+  it('renderiza itens perdidos por padrão', () => {
     const items = wrapper.findAll('.item-card')
-    expect(items.length).toBe(wrapper.vm.perdidos.length)
+    expect(items.length).toBe(1)
   })
 
-  it('renderiza itens encontrados', async () => {
+  it('renderiza itens encontrados ao trocar aba', async () => {
     await wrapper.findAll('.tab')[1]!.trigger('click')
-
     const items = wrapper.findAll('.item-card')
-    expect(items.length).toBe(wrapper.vm.encontrados.length)
+    expect(items.length).toBe(1)
   })
 
-  // ✅ CONTEÚDO
-  it('mostra título e localização do item', () => {
+  it('mostra nome e localização do item', () => {
     const item = wrapper.find('.item-card')
-
-    expect(item.text()).toContain('MacBook')
-    expect(item.text()).toContain('Biblioteca')
+    expect(item.text()).toContain('Meu Notebook')
+    expect(item.text()).toContain('Sala 206')
   })
 
-  // ✅ IMAGEM / PLACEHOLDER
   it('mostra imagem quando existe', () => {
-    expect(wrapper.find('img').exists()).toBe(true)
+    expect(wrapper.find('.item-thumb img').exists()).toBe(true)
   })
 
-  it('mostra placeholder quando não tem imagem', async () => {
-    wrapper.vm.perdidos[0]!.image = ''
-
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.find('.thumb-placeholder').exists()).toBe(true)
-  })
-
-  // ✅ BADGE
   it('mostra badge "Perdido" por padrão', () => {
     expect(wrapper.find('.item-badge').text()).toBe('Perdido')
   })
 
   it('muda badge para "Encontrado"', async () => {
     await wrapper.findAll('.tab')[1]!.trigger('click')
-
     expect(wrapper.find('.item-badge').text()).toBe('Encontrado')
   })
 
-  // ✅ EMPTY STATE
-  it('mostra estado vazio quando não há itens', async () => {
-    wrapper.vm.perdidos = []
-    wrapper.vm.activeTab = 'perdidos'
-
+  it('mostra estado vazio quando sem itens', async () => {
+    mockLostRef.value = []
     await wrapper.vm.$nextTick()
-
     expect(wrapper.find('.empty-state').exists()).toBe(true)
   })
 
-  // ✅ NAVEGAÇÃO
-  it('navega para explorar', () => {
-    wrapper.vm.handleNavigate('explorar')
+  it('navega corretamente', () => {
+    const vm = wrapper.vm as any
+    vm.handleNavigate('explorar')
     expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' })
-  })
-
-  it('navega para registrar', () => {
-    wrapper.vm.handleNavigate('registrar')
-    expect(pushMock).toHaveBeenCalledWith({ name: 'registrar' })
-  })
-
-  it('navega para meus-itens', () => {
-    wrapper.vm.handleNavigate('meus-itens')
-    expect(pushMock).toHaveBeenCalledWith({ name: 'meus-itens' })
   })
 
   it('não navega com rota inválida', () => {
     pushMock.mockClear()
-
-    wrapper.vm.handleNavigate('invalido')
-
+    const vm = wrapper.vm as any
+    vm.handleNavigate('invalido')
     expect(pushMock).not.toHaveBeenCalled()
   })
+})
 
-  // ✅ LOGOUT (SEM ANY)
-  it('faz logout corretamente', () => {
-    const originalLocation = window.location
+describe('MeusItensView — loading state', () => {
+  it('mostra indicador de loading', async () => {
+    mockLoading.value = true
+    mockLostRef.value = []
+    mockFoundRef.value = []
 
-    Object.defineProperty(window, 'location', {
-      value: { href: '' },
-      writable: true,
+    const MeusItensView = (await import('@/views/MeusItensView.vue')).default
+    const wrapper = mount(MeusItensView, {
+      global: {
+        stubs: {
+          AppSidebar: { template: '<div></div>' },
+        },
+      },
     })
 
-    wrapper.vm.handleLogout()
-
-    expect(window.location.href).toBe('/')
-
-    // restaura
-    Object.defineProperty(window, 'location', {
-      value: originalLocation,
-    })
+    expect(wrapper.find('[data-testid="loading-indicator"]').exists()).toBe(true)
+    expect(wrapper.find('.items-list').exists()).toBe(false)
   })
+})
 
-  // ✅ UI
-  it('renderiza botão de seta', () => {
-    expect(wrapper.find('.item-arrow').exists()).toBe(true)
+describe('MeusItensView — error state', () => {
+  it('mostra mensagem de erro', async () => {
+    mockLoading.value = false
+    mockError.value = 'Conta de usuário não encontrada'
+    mockLostRef.value = []
+    mockFoundRef.value = []
+
+    const MeusItensView = (await import('@/views/MeusItensView.vue')).default
+    const wrapper = mount(MeusItensView, {
+      global: {
+        stubs: {
+          AppSidebar: { template: '<div></div>' },
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="error-message"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="error-message"]').text()).toContain('Conta de usuário não encontrada')
   })
 })

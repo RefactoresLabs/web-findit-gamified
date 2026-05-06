@@ -30,36 +30,44 @@
       <p class="card-sub">Informe o local para facilitar a recuperação</p>
 
       <div class="form">
-        <!-- PRÉDIO -->
         <div class="field">
           <label>Prédio <span class="required">*</span></label>
-          <select v-model="form.predio">
-            <option value="">Selecione</option>
-            <option value="UNDB">UNDB</option>
+          <select v-model.number="form.building_id">
+            <option value="0" disabled>Selecione o prédio</option>
+            <option v-for="b in buildings" :key="b.id" :value="b.id">
+              {{ b.name }}
+            </option>
           </select>
         </div>
 
-        <!-- MAPA -->
+        <div class="field">
+          <label>Local <span class="required">*</span></label>
+          <select v-model.number="form.building_space_id">
+            <option value="0" disabled>Selecione o local</option>
+            <option v-for="space in buildingSpaces" :key="space.id" :value="space.id">
+              {{ space.name }}
+            </option>
+          </select>
+        </div>
+
+        <div v-if="type === 'found'" class="field">
+          <label>Onde o item foi deixado <span class="required">*</span></label>
+          <select v-model.number="form.left_building_space_id">
+            <option value="0" disabled>Selecione o local</option>
+            <option v-for="space in buildingSpaces" :key="space.id" :value="space.id">
+              {{ space.name }}
+            </option>
+          </select>
+        </div>
+
         <div class="field">
           <label>Marque no mapa <span class="required">*</span></label>
           <div id="map" class="map"></div>
 
           <small v-if="form.lat !== null && form.lng !== null">
-            📍 {{ form.lat.toFixed(5) }}, {{ form.lng.toFixed(5) }}
+            {{ form.lat.toFixed(5) }}, {{ form.lng.toFixed(5) }}
           </small>
         </div>
-
-        <!-- DESCRIÇÃO -->
-        <div class="field">
-          <label>Descrição do local</label>
-          <input
-            v-model="form.descricao"
-            type="text"
-            placeholder="Ex: Sala 204, perto da escada..."
-          />
-        </div>
-
-
       </div>
     </div>
 
@@ -77,15 +85,15 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted, watch } from 'vue'
+import { reactive, computed, watch, onMounted } from 'vue'
 import L from 'leaflet'
+import { buildings, buildingSpaces } from '@/data/static'
 
-defineProps<{ type: 'lost' | 'found' }>()
+const props = defineProps<{ type: 'lost' | 'found' }>()
 
 type LocationData = {
-  predio: string
-  descricao: string
-  datetime: string
+  building_space_id: number
+  left_building_space_id: number
   lat: number | null
   lng: number | null
 }
@@ -96,49 +104,24 @@ const emit = defineEmits<{
 }>()
 
 const form = reactive({
-  predio: '',
-  descricao: '',
-  datetime: '',
+  building_id: 0,
+  building_space_id: 0,
+  left_building_space_id: 0,
   lat: null as number | null,
-  lng: null as number | null
+  lng: null as number | null,
 })
 
 let map: L.Map
 let marker: L.Marker | null = null
 
-// 🔥 FUNÇÃO USANDO ENV
-async function buscarCoordenadas(local: string) {
-  const API_URL = import.meta.env.VITE_GEOCODING_API_URL
-  const FORMAT = import.meta.env.VITE_GEOCODING_FORMAT
-  const CITY = import.meta.env.VITE_GEOCODING_CITY
-  const COUNTRY = import.meta.env.VITE_GEOCODING_COUNTRY
-
-  const query = `${local} ${CITY} ${COUNTRY}`
-
-  const response = await fetch(
-    `${API_URL}?q=${encodeURIComponent(query)}&format=${FORMAT}`
-  )
-
-  const data = await response.json()
-
-  if (data.length > 0) {
-    return {
-      lat: parseFloat(data[0].lat),
-      lng: parseFloat(data[0].lon)
-    }
-  }
-
-  return null
-}
-
 onMounted(() => {
-  map = L.map('map').setView([-2.5307, -44.3068], 17)
+  map = L.map('map').setView([-2.50, -44.29], 14)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
+    attribution: '&copy; OpenStreetMap',
   }).addTo(map)
 
- delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
+  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -147,10 +130,8 @@ onMounted(() => {
 
   map.on('click', (e: L.LeafletMouseEvent) => {
     const { lat, lng } = e.latlng
-
     form.lat = lat
     form.lng = lng
-
     if (marker) {
       marker.setLatLng(e.latlng)
     } else {
@@ -159,35 +140,26 @@ onMounted(() => {
   })
 })
 
-// 🔥 WATCH COM API
-watch(() => form.predio, async (novoPredio) => {
-  if (!map || !novoPredio) return
-
-  const coords = await buscarCoordenadas(novoPredio)
-
-  if (!coords) return
-
-  const { lat, lng } = coords
-
-  map.setView([lat, lng], 18)
-
-  form.lat = lat
-  form.lng = lng
-
+watch(() => form.building_id, (id) => {
+  const building = buildings.find(b => b.id === id)
+  if (!building) return
+  const latlng: L.LatLngExpression = [building.lat, building.lng]
+  map.flyTo(latlng, 17)
+  form.lat = building.lat
+  form.lng = building.lng
   if (marker) {
-    marker.setLatLng([lat, lng])
+    marker.setLatLng(latlng)
   } else {
-    marker = L.marker([lat, lng]).addTo(map)
+    marker = L.marker(latlng).addTo(map)
   }
 })
 
 const isValid = computed(() => {
-  return (
-    form.predio !== '' &&
-    form.datetime !== '' &&
-    form.lat !== null &&
-    form.lng !== null
-  )
+  if (form.building_id === 0) return false
+  if (form.building_space_id === 0) return false
+  if (form.lat === null || form.lng === null) return false
+  if (props.type === 'found' && form.left_building_space_id === 0) return false
+  return true
 })
 
 function handleSubmit() {

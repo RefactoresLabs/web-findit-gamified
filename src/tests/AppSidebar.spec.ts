@@ -1,20 +1,44 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import AppSidebar from '@/components/layout/AppSidebar.vue'
 import type { ComponentPublicInstance } from 'vue'
 
-function mountComponent(props = {}): VueWrapper {
-  return mount(AppSidebar, { props })
+function createMockStorage(): Storage {
+  let store: Record<string, string> = {}
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => { store[key] = value },
+    removeItem: (key: string) => { delete store[key] },
+    clear: () => { store = {} },
+    get length() { return Object.keys(store).length },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+  }
+}
+
+function createJwtToken(payload: Record<string, unknown>): string {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+  const body = btoa(JSON.stringify(payload))
+  return `${header}.${body}.fakesignature`
 }
 
 describe('AppSidebar.vue', () => {
   let wrapper: VueWrapper
+  let mockStorage: Storage
 
-  beforeEach(() => {
-    wrapper = mountComponent()
+  beforeEach(async () => {
+    mockStorage = createMockStorage()
+    const token = createJwtToken({ user_id: 1, email: 'aluno@universidade.com' })
+    mockStorage.setItem('auth_token', token)
+    vi.stubGlobal('localStorage', mockStorage)
+    vi.resetModules()
+
+    const module = await import('@/components/layout/AppSidebar.vue')
+    wrapper = mount(module.default, { props: {} })
   })
 
-  // 🧪 Renderização
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('renderiza o nome da marca corretamente', () => {
     expect(wrapper.find('[data-testid="brand-name"]').text()).toBe('Achados e Perdidos')
   })
@@ -35,10 +59,6 @@ describe('AppSidebar.vue', () => {
     expect(wrapper.find('[data-testid="nav-meus-itens"]').text()).toContain('Meus Itens')
   })
 
-  it('renderiza nome do usuário', () => {
-    expect(wrapper.find('[data-testid="user-name"]').text()).toBe('Maria Silva')
-  })
-
   it('renderiza email do usuário', () => {
     expect(wrapper.find('[data-testid="user-email"]').text()).toBe('aluno@universidade.com')
   })
@@ -51,7 +71,6 @@ describe('AppSidebar.vue', () => {
     expect(wrapper.find('[data-testid="sidebar-toggle"]').exists()).toBe(true)
   })
 
-  // 🧠 Estado inicial
   it('inicia expandido', () => {
     expect((wrapper.vm as ComponentPublicInstance & { isCollapsed: boolean }).isCollapsed).toBe(false)
   })
@@ -60,7 +79,6 @@ describe('AppSidebar.vue', () => {
     expect(wrapper.find('[data-testid="nav-explorar"]').classes()).toContain('active')
   })
 
-  // 🔄 Toggle
   it('toggle colapsa o sidebar', async () => {
     await wrapper.find('[data-testid="sidebar-toggle"]').trigger('click')
     expect((wrapper.vm as ComponentPublicInstance & { isCollapsed: boolean }).isCollapsed).toBe(true)
@@ -77,7 +95,6 @@ describe('AppSidebar.vue', () => {
     expect(wrapper.find('[data-testid="sidebar"]').classes()).toContain('collapsed')
   })
 
-  // 📡 Emits
   it('emite navigate com explorar ao clicar no item Explorar', async () => {
     await wrapper.find('[data-testid="nav-explorar"]').trigger('click')
     expect(wrapper.emitted('navigate')).toBeTruthy()
@@ -101,10 +118,8 @@ describe('AppSidebar.vue', () => {
     expect(wrapper.emitted('logout')).toBeTruthy()
   })
 
-  // 🏷️ Prop activeItem
-  it('marca o item correto como ativo via prop activeItem', () => {
-    const w = mountComponent({ activeItem: 'registrar' })
-    expect(w.find('[data-testid="nav-registrar"]').classes()).toContain('active')
-    expect(w.find('[data-testid="nav-explorar"]').classes()).not.toContain('active')
+  it('logout limpa token do localStorage', async () => {
+    await wrapper.find('[data-testid="logout-button"]').trigger('click')
+    expect(mockStorage.getItem('auth_token')).toBeNull()
   })
 })

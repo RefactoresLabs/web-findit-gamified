@@ -1,35 +1,38 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useItems } from '@/composables/useItems'
 import SearchBar from '@/components/ui/SearchBar.vue'
 import TabFilter from '@/components/ui/TabFilter.vue'
 import ItemCard from '@/components/ui/ItemCard.vue'
 
 const emit = defineEmits<{
-  showDetail: [id: number]
+  showDetail: [id: number, type: 'perdido' | 'encontrado']
   showMap: []
 }>()
 
-const { items } = useItems()
+const { lostItems, foundItems, loading, error, fetchItems } = useItems()
 const searchQuery = ref('')
 const activeTab = ref('perdido')
 
-const perdidosCount = computed(() => items.value.filter((i) => i.tipo === 'perdido').length)
-const encontradosCount = computed(() => items.value.filter((i) => i.tipo === 'encontrado').length)
+onMounted(() => {
+  fetchItems()
+})
+
+const currentItems = computed(() =>
+  activeTab.value === 'perdido' ? lostItems.value : foundItems.value,
+)
 
 const filteredItems = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
-  return items.value
-    .filter((i) => i.tipo === activeTab.value)
-    .filter(
-      (i) =>
-        !query || i.nome.toLowerCase().includes(query) || i.local.toLowerCase().includes(query),
-    )
+  return currentItems.value.filter(
+    (i) =>
+      !query || i.name.toLowerCase().includes(query) || i.locationName.toLowerCase().includes(query),
+  )
 })
 
 const tabs = computed(() => [
-  { key: 'perdido', label: 'Itens Perdidos', count: perdidosCount.value },
-  { key: 'encontrado', label: 'Itens Encontrados', count: encontradosCount.value },
+  { key: 'perdido', label: 'Itens Perdidos', count: lostItems.value.length },
+  { key: 'encontrado', label: 'Itens Encontrados', count: foundItems.value.length },
 ])
 </script>
 
@@ -52,12 +55,23 @@ const tabs = computed(() => [
 
     <TabFilter v-model="activeTab" :tabs="tabs" />
 
-    <div class="items-grid" data-testid="items-grid">
+    <div v-if="loading" class="loading-state" data-testid="loading-indicator">
+      <i class="pi pi-spin pi-spinner" />
+      <p>Carregando itens...</p>
+    </div>
+
+    <div v-else-if="error" class="error-state" data-testid="error-message">
+      <i class="pi pi-exclamation-circle" />
+      <p>{{ error }}</p>
+      <button class="btn-retry" @click="fetchItems()">Tentar novamente</button>
+    </div>
+
+    <div v-else class="items-grid" data-testid="items-grid">
       <ItemCard
         v-for="item in filteredItems"
         :key="item.id"
         :item="item"
-        @select="emit('showDetail', $event)"
+        @select="emit('showDetail', $event, activeTab as 'perdido' | 'encontrado')"
       />
     </div>
   </div>
@@ -129,6 +143,47 @@ const tabs = computed(() => [
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+  gap: 0.75rem;
+}
+
+.loading-state i,
+.error-state i {
+  font-size: 2rem;
+}
+
+.loading-state p,
+.error-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.error-state {
+  color: #ef4444;
+}
+
+.btn-retry {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-retry:hover {
+  background: #f3f4f6;
 }
 
 @media (max-width: 1024px) {

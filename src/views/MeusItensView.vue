@@ -1,82 +1,34 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
+import { useMyItems } from '@/composables/useMyItems'
 
 const router = useRouter()
+const { myLostItems, myFoundItems, loading, error, fetchMyItems } = useMyItems()
 
-/* =========================
-   🔥 TIPOS
-========================= */
 type TabType = 'perdidos' | 'encontrados'
-
-type Item = {
-  id: number
-  title: string
-  location: string
-  image: string
-  description: string
-  user: string
-  date: string
-  type: 'perdido' | 'encontrado'
-}
-
 type RouteKey = 'explorar' | 'registrar' | 'meus-itens'
 
-/* =========================
-   🔥 STATE
-========================= */
 const activeTab = ref<TabType>('perdidos')
 
-const perdidos = ref<Item[]>([
-  {
-    id: 1,
-    title: 'MacBook Pro 14"',
-    location: 'Biblioteca Central',
-    image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=80',
-    description: 'Notebook perdido próximo à entrada.',
-    user: 'Christhian Gabriel',
-    date: '2026-05-01',
-    type: 'perdido',
-  },
-])
+onMounted(() => {
+  fetchMyItems()
+})
 
-const encontrados = ref<Item[]>([
-  {
-    id: 4,
-    title: 'Carteira de Couro',
-    location: 'Cantina Central',
-    image: 'https://images.unsplash.com/photo-1627123424574-724758594913?w=80',
-    description: 'Carteira encontrada com documentos.',
-    user: 'Christhian Gabriel',
-    date: '2026-05-02',
-    type: 'encontrado',
-  },
-])
-
-/* =========================
-   🔥 COMPUTED
-========================= */
 const currentItems = computed(() =>
-  activeTab.value === 'perdidos' ? perdidos.value : encontrados.value
+  activeTab.value === 'perdidos' ? myLostItems.value : myFoundItems.value,
 )
 
-/* =========================
-   🔥 ROTAS SEGURAS
-========================= */
 const routesMap: Record<RouteKey, { name: RouteKey }> = {
   explorar: { name: 'explorar' },
   registrar: { name: 'registrar' },
   'meus-itens': { name: 'meus-itens' },
 }
 
-/* =========================
-   🔥 FUNÇÕES
-========================= */
 function handleNavigate(item: string) {
   if (item in routesMap) {
-    const key = item as RouteKey
-    router.push(routesMap[key])
+    router.push(routesMap[item as RouteKey])
   }
 }
 
@@ -95,14 +47,13 @@ function handleLogout() {
         <p class="page-sub">Gerencie os itens que você registrou</p>
       </div>
 
-      <!-- TABS -->
       <div class="tabs">
         <button
           class="tab"
           :class="{ active: activeTab === 'perdidos' }"
           @click="activeTab = 'perdidos'"
         >
-          Perdidos ({{ perdidos.length }})
+          Perdidos ({{ myLostItems.length }})
         </button>
 
         <button
@@ -110,32 +61,40 @@ function handleLogout() {
           :class="{ active: activeTab === 'encontrados' }"
           @click="activeTab = 'encontrados'"
         >
-          Encontrados ({{ encontrados.length }})
+          Encontrados ({{ myFoundItems.length }})
         </button>
       </div>
 
-      <!-- LISTA -->
-      <div class="items-list">
+      <div v-if="loading" class="loading-state" data-testid="loading-indicator">
+        <i class="pi pi-spin pi-spinner" />
+        <p>Carregando seus itens...</p>
+      </div>
+
+      <div v-else-if="error" class="error-state" data-testid="error-message">
+        <i class="pi pi-exclamation-circle" />
+        <p>{{ error }}</p>
+        <button class="btn-retry" @click="fetchMyItems()">Tentar novamente</button>
+      </div>
+
+      <div v-else class="items-list">
         <div
           v-for="item in currentItems"
           :key="item.id"
           class="item-card"
         >
-          <!-- IMAGEM -->
           <div class="item-thumb">
-            <img v-if="item.image" :src="item.image" :alt="item.title" />
+            <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name" />
             <div v-else class="thumb-placeholder">
               <i class="pi pi-image"></i>
             </div>
           </div>
 
-          <!-- INFO -->
           <div class="item-info">
-            <span class="item-title">{{ item.title }}</span>
+            <span class="item-title">{{ item.name }}</span>
 
             <span class="item-location">
               <i class="pi pi-map-marker"></i>
-              {{ item.location }}
+              {{ item.locationName }}
             </span>
 
             <span
@@ -146,16 +105,14 @@ function handleLogout() {
             </span>
           </div>
 
-          <!-- AÇÃO -->
           <button
             class="item-arrow"
-            @click="router.push(`/item/${item.id}`)"
+            @click="router.push({ path: `/item/${item.id}`, query: { type: item.type === 'perdido' ? 'perdido' : 'encontrado' } })"
           >
             <i class="pi pi-arrow-right"></i>
           </button>
         </div>
 
-        <!-- EMPTY -->
         <div v-if="currentItems.length === 0" class="empty-state">
           <i class="pi pi-inbox"></i>
           <p>Nenhum item registrado ainda.</p>
@@ -164,6 +121,7 @@ function handleLogout() {
     </main>
   </div>
 </template>
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -322,6 +280,47 @@ function handleLogout() {
   cursor: pointer;
   padding: 0.25rem;
   flex-shrink: 0;
+}
+
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+  gap: 0.75rem;
+}
+
+.loading-state i,
+.error-state i {
+  font-size: 2rem;
+}
+
+.loading-state p,
+.error-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.error-state {
+  color: #ef4444;
+}
+
+.btn-retry {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-retry:hover {
+  background: #f3f4f6;
 }
 
 .empty-state {

@@ -1,19 +1,41 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useAuth } from '@/composables/useAuth'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const { register } = useAuth()
 
 const name = ref('')
 const email = ref('')
 const phone = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
 
-function handleRegister() {
+async function handleRegister() {
+    errorMessage.value = ''
+    successMessage.value = ''
     isLoading.value = true
-
-    setTimeout(() => {
+    try {
+        await register({
+            name: name.value,
+            email: email.value,
+            password: password.value,
+            confirm_password: confirmPassword.value,
+            phone: phone.value,
+        })
+        successMessage.value = 'Conta criada com sucesso! Redirecionando...'
+        setTimeout(() => router.push('/'), 2000)
+    } catch (err: unknown) {
+        const error = err as { message?: string }
+        errorMessage.value = error.message ?? 'Erro ao criar conta'
+    } finally {
         isLoading.value = false
-    }, 1500)
+    }
 }
 
 const floatingItems = [
@@ -165,6 +187,32 @@ const floatingItems = [
                             </button>
                         </div>
                     </div>
+
+                    <!-- Confirmar Senha -->
+                    <div class="field-group">
+                        <label for="register-confirm-password" class="field-label">Confirmar senha</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                            </span>
+                            <input id="register-confirm-password" v-model="confirmPassword" type="password"
+                                class="input-field" data-testid="input-confirm-password" placeholder="••••••••" autocomplete="new-password" required />
+                        </div>
+                    </div>
+
+                    <!-- Erro -->
+                    <p v-if="errorMessage" data-testid="error-message" class="error-message">
+                        {{ errorMessage }}
+                    </p>
+
+                    <!-- Sucesso -->
+                    <p v-if="successMessage" data-testid="success-message" class="success-message">
+                        {{ successMessage }}
+                    </p>
 
                     <!-- Botão -->
                     <button class="login-btn"  data-testid="register-button"  :disabled="isLoading">
@@ -602,6 +650,29 @@ const floatingItems = [
     border-left: none;
     transform: rotate(45deg) translateY(-1px);
     display: block;
+}
+
+/* Mensagens */
+.error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 0.5rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+}
+
+.success-message {
+    color: #16a34a;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 0.5rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
 }
 
 /* Botão de Login */

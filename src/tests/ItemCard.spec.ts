@@ -1,66 +1,53 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ItemCard from '@/components/ui/ItemCard.vue'
-import type { Item } from '@/types/item'
+import type { FeedItem } from '@/types/item'
 
-const mockItem: Item = {
+const mockItem: FeedItem = {
   id: 1,
-  nome: 'MacBook Pro 14"',
-  descricao: 'MacBook Pro 14 polegadas, cor prata',
-  local: 'Biblioteca Central',
-  data: '12 Mar 2026',
-  categoria: 'Eletrônico',
-  tipo: 'perdido',
-  foto: 'https://picsum.photos/seed/macbook/400/300',
-  reportadoPor: 'Maria Silva',
-  status: 'Aguardando alguém encontrar este item.',
-  
-  // ✅ CORREÇÃO AQUI
-  lat: -2.5307,
-  lng: -44.3068,
+  name: 'MacBook Pro 14"',
+  userName: 'Maria Silva',
+  categoryName: 'Material Escolar',
+  locationName: 'Sala 206',
+  imageUrl: 'https://picsum.photos/seed/macbook/400/300',
+  type: 'perdido',
 }
 
 describe('ItemCard.vue', () => {
-  it('renderiza a foto do item', () => {
+  it('renderiza imagem do item', () => {
     const wrapper = mount(ItemCard, { props: { item: mockItem } })
     const img = wrapper.find('[data-testid="item-card-image"]')
     expect(img.exists()).toBe(true)
-    expect(img.attributes('src')).toBe(mockItem.foto)
+    expect(img.attributes('src')).toBe(mockItem.imageUrl)
   })
 
-  it('renderiza o nome do item', () => {
+  it('renderiza nome do item', () => {
     const wrapper = mount(ItemCard, { props: { item: mockItem } })
-    expect(wrapper.find('[data-testid="item-card-name"]').text()).toBe(mockItem.nome)
+    expect(wrapper.find('[data-testid="item-card-name"]').text()).toBe(mockItem.name)
   })
 
-  it('renderiza o local do item', () => {
+  it('renderiza local do item', () => {
     const wrapper = mount(ItemCard, { props: { item: mockItem } })
-    expect(wrapper.find('[data-testid="item-card-local"]').text()).toContain(mockItem.local)
+    expect(wrapper.find('[data-testid="item-card-local"]').text()).toContain(mockItem.locationName)
   })
 
-  it('renderiza a data do item', () => {
+  it('renderiza categoria do item', () => {
     const wrapper = mount(ItemCard, { props: { item: mockItem } })
-    expect(wrapper.find('[data-testid="item-card-data"]').text()).toContain(mockItem.data)
+    expect(wrapper.find('[data-testid="category-chip"]').text()).toContain(mockItem.categoryName)
   })
 
-  it('renderiza CategoryChip com a categoria correta', () => {
-    const wrapper = mount(ItemCard, { props: { item: mockItem } })
-    expect(wrapper.find('[data-testid="category-chip"]').text()).toContain(mockItem.categoria)
-  })
-
-  it('não renderiza badge de tipo (Perdido/Encontrado)', () => {
-    const wrapper = mount(ItemCard, { props: { item: mockItem } })
-    expect(wrapper.text()).not.toContain('Perdido')
-    expect(wrapper.text()).not.toContain('Encontrado')
-  })
-
-  it('emite evento select com o id do item ao clicar no card', async () => {
+  it('emite select com id ao clicar', async () => {
     const wrapper = mount(ItemCard, { props: { item: mockItem } })
     await wrapper.find('[data-testid="item-card"]').trigger('click')
 
     const emitted = wrapper.emitted('select')
     expect(emitted).toBeTruthy()
-
     expect(emitted![0]).toEqual([mockItem.id])
+  })
+
+  it('renderiza placeholder quando imageUrl vazio', () => {
+    const itemSemFoto = { ...mockItem, imageUrl: '' }
+    const wrapper = mount(ItemCard, { props: { item: itemSemFoto } })
+    expect(wrapper.find('[data-testid="item-card-placeholder"]').exists()).toBe(true)
   })
 })

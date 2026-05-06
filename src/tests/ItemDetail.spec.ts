@@ -1,79 +1,195 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import ItemDetailView from '@/views/ItemDetailView.vue'
+import type { ItemDetail } from '@/types/item'
+import { ref } from 'vue'
 
-// MOCK GLOBAL DO ROUTER
-let mockId = 1
+const pushMock = vi.fn()
+const backMock = vi.fn()
+let mockRouteParams = { id: '1' }
+let mockRouteQuery = { type: 'perdido' }
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({
-    params: { id: mockId },
+    params: mockRouteParams,
+    query: mockRouteQuery,
   }),
   useRouter: () => ({
-    push: vi.fn(),
-    back: vi.fn(),
+    push: pushMock,
+    back: backMock,
   }),
 }))
 
-// MOCK SIDEBAR (evita erro)
 vi.mock('@/components/layout/AppSidebar.vue', () => ({
-  default: {
-    template: '<div />',
-  },
+  default: { template: '<div data-testid="sidebar" />' },
 }))
 
-describe('ItemDetailView', () => {
+const mockLostDetail: ItemDetail = {
+  id: 1,
+  name: 'MacBook Pro 14',
+  description: 'Notebook perdido perto da entrada',
+  userName: 'Maria Silva',
+  userEmail: 'maria@undb.edu.br',
+  userPhone: '98988887777',
+  categoryName: 'Material Escolar',
+  locationName: 'Sala 206',
+  buildingName: 'Centro Universitário UNDB',
+  buildingCep: '65075441',
+  buildingNeighborhood: 'Jardim Renascença',
+  buildingStreet: 'Coronel Colares Moreira',
+  leftLocationName: null,
+  leftBuildingName: null,
+  imageUrls: ['http://example.com/macbook.jpg'],
+  type: 'perdido',
+}
 
+const mockFoundDetail: ItemDetail = {
+  id: 3,
+  name: 'Carteira de Couro',
+  description: 'Carteira marrom encontrada',
+  userName: 'Maria Silva',
+  userEmail: 'maria@undb.edu.br',
+  userPhone: '98988887777',
+  categoryName: 'Acessório Pessoal',
+  locationName: 'Recepção',
+  buildingName: 'Centro Universitário UNDB',
+  buildingCep: '65075441',
+  buildingNeighborhood: 'Jardim Renascença',
+  buildingStreet: 'Coronel Colares Moreira',
+  leftLocationName: 'Refeitório',
+  leftBuildingName: 'Centro Universitário UNDB',
+  imageUrls: [],
+  type: 'encontrado',
+}
+
+const mockFetchItem = vi.fn()
+const mockItem = ref<ItemDetail | null>(null)
+const mockLoading = ref(false)
+const mockError = ref<string | null>(null)
+
+vi.mock('@/composables/useItemDetail', () => ({
+  useItemDetail: () => ({
+    item: mockItem,
+    loading: mockLoading,
+    error: mockError,
+    fetchItem: mockFetchItem,
+  }),
+}))
+
+describe('ItemDetailView — item perdido', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    mockRouteParams = { id: '1' }
+    mockRouteQuery = { type: 'perdido' }
+    mockItem.value = mockLostDetail
+    mockLoading.value = false
+    mockError.value = null
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  async function mountComponent() {
+    const { default: ItemDetailView } = await import('@/views/ItemDetailView.vue')
+    return mount(ItemDetailView)
+  }
+
+  it('chama fetchItem com id e tipo da rota', async () => {
+    await mountComponent()
+    expect(mockFetchItem).toHaveBeenCalledWith(1, 'perdido')
+  })
+
+  it('renderiza nome do item', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-title"]').text()).toBe('MacBook Pro 14')
+  })
+
+  it('renderiza descrição', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-description"]').text()).toContain('Notebook perdido')
+  })
+
+  it('renderiza local', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-location"]').text()).toContain('Sala 206')
+  })
+
+  it('renderiza badge Perdido', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('.item-badge').text()).toBe('Perdido')
+  })
+
+  it('renderiza info do usuário', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-user-name"]').text()).toContain('Maria Silva')
+    expect(wrapper.find('[data-testid="detail-user-email"]').text()).toContain('maria@undb.edu.br')
+    expect(wrapper.find('[data-testid="detail-user-phone"]').text()).toContain('98988887777')
+  })
+
+  it('renderiza imagem quando existe', async () => {
+    const wrapper = await mountComponent()
+    const img = wrapper.find('[data-testid="detail-image"]')
+    expect(img.exists()).toBe(true)
+    expect(img.attributes('src')).toBe('http://example.com/macbook.jpg')
+  })
+
+  it('botão voltar chama router.back', async () => {
+    const wrapper = await mountComponent()
+    await wrapper.find('[data-testid="back-btn"]').trigger('click')
+    expect(backMock).toHaveBeenCalled()
+  })
+})
+
+describe('ItemDetailView — item encontrado', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockRouteParams = { id: '3' }
+    mockRouteQuery = { type: 'encontrado' }
+    mockItem.value = mockFoundDetail
+    mockLoading.value = false
+    mockError.value = null
   })
 
-  it('deve renderizar item perdido corretamente', async () => {
-    mockId = 1 // MacBook (perdido)
+  async function mountComponent() {
+    const { default: ItemDetailView } = await import('@/views/ItemDetailView.vue')
+    return mount(ItemDetailView)
+  }
 
-    const wrapper = mount(ItemDetailView)
-
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    expect(wrapper.text()).toContain('MacBook Pro')
-    expect(wrapper.text()).toContain('Biblioteca Central')
-    expect(wrapper.text()).toContain('Perdido')
+  it('renderiza badge Encontrado', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('.item-badge').text()).toBe('Encontrado')
   })
 
-  it('deve mostrar botão de confirmar entrega para item encontrado', async () => {
-    mockId = 4 // Carteira (encontrado)
-
-    const wrapper = mount(ItemDetailView)
-
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    const button = wrapper.find('.confirm-btn')
-    expect(button.exists()).toBe(true)
+  it('mostra seção left_building_space', async () => {
+    const wrapper = await mountComponent()
+    expect(wrapper.find('[data-testid="detail-left-location"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="detail-left-location"]').text()).toContain('Refeitório')
   })
+})
 
-  it('não deve mostrar botão para item perdido', async () => {
-    mockId = 1 // perdido
+describe('ItemDetailView — loading state', () => {
+  it('mostra loading', async () => {
+    mockItem.value = null
+    mockLoading.value = true
+    mockError.value = null
 
+    const { default: ItemDetailView } = await import('@/views/ItemDetailView.vue')
     const wrapper = mount(ItemDetailView)
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    const button = wrapper.find('.confirm-btn')
-    expect(button.exists()).toBe(false)
+    expect(wrapper.find('[data-testid="loading-indicator"]').exists()).toBe(true)
   })
+})
 
-  it('deve chamar alert ao clicar em confirmar entrega', async () => {
-    mockId = 4 // encontrado
+describe('ItemDetailView — error state', () => {
+  it('mostra mensagem de erro', async () => {
+    mockItem.value = null
+    mockLoading.value = false
+    mockError.value = 'Item não encontrado'
 
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
-
+    const { default: ItemDetailView } = await import('@/views/ItemDetailView.vue')
     const wrapper = mount(ItemDetailView)
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-
-    const button = wrapper.find('.confirm-btn')
-    await button.trigger('click')
-
-    expect(alertMock).toHaveBeenCalled()
+    expect(wrapper.find('[data-testid="error-message"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="error-message"]').text()).toContain('Item não encontrado')
   })
 })
