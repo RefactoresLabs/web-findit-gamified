@@ -26,3 +26,12 @@ export interface ItemDetail {
   imageUrls: string[]
   type: 'perdido' | 'encontrado'
 }
+
+export interface NegotiationItem {
+  id: number
+  itemId: number
+  itemName: string
+  status: string
+  userName: string
+  createdAt: string
+}

@@ -125,6 +125,27 @@ export interface CreateFoundItemRequest {
   image_urls?: string[]
 }
 
+export interface ClaimStatus {
+  name: 'Pendente' | 'Aceita' | 'Rejeitada' | 'Finalizada'
+}
+
+export interface ClaimSummary {
+  id: number
+  status: ClaimStatus
+  associated_found_item: { id: number; name: string }
+  claimant_user_account: { name: string }
+  created_at: string
+}
+
+export interface ClaimDetail {
+  id: number
+  status: ClaimStatus
+  claimant_user_account: { name: string; phone: string }
+  associated_found_item: { id: number; name: string; user?: { name: string; phone: string } }
+  created_at: string
+  retrieval_code: string
+}
+
 export interface ApiError {
   message: string
   code?: string

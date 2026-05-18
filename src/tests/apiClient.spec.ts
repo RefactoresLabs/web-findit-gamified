@@ -123,6 +123,45 @@ describe('API Client: requests', () => {
     const result = await apiClient.get('/lost-items')
     expect(result).toEqual({ data: 'test' })
   })
+
+  it('PATCH envia method e body corretos', async () => {
+    const { apiClient } = await import('@/services/api')
+    const body = { retrieval_code: '1234567890' }
+    await apiClient.patch('/claims/1/complete-retrieval', body)
+    expect(fetchSpy).toHaveBeenCalledWith(
+      `${BASE_URL}/claims/1/complete-retrieval`,
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify(body),
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+        }),
+      }),
+    )
+  })
+
+  it('PATCH sem body não envia Content-Type', async () => {
+    const { apiClient } = await import('@/services/api')
+    await apiClient.patch('/claims/1/accept')
+    expect(fetchSpy).toHaveBeenCalledWith(
+      `${BASE_URL}/claims/1/accept`,
+      expect.objectContaining({
+        method: 'PATCH',
+        body: undefined,
+      }),
+    )
+    const callHeaders = fetchSpy.mock.calls[0][1].headers
+    expect(callHeaders['Content-Type']).toBeUndefined()
+  })
+
+  it('DELETE envia method correto', async () => {
+    const { apiClient } = await import('@/services/api')
+    await apiClient.delete('/claim/1')
+    expect(fetchSpy).toHaveBeenCalledWith(
+      `${BASE_URL}/claim/1`,
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
 })
 
 describe('API Client: error handling', () => {

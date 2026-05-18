@@ -113,6 +113,16 @@ describe('AppSidebar.vue', () => {
     expect(wrapper.emitted('navigate')![0]).toEqual(['meus-itens'])
   })
 
+  it('renderiza item de navegação Negociações', () => {
+    expect(wrapper.find('[data-testid="nav-negociacoes"]').text()).toContain('Negociações')
+  })
+
+  it('emite navigate com negociacoes ao clicar no item Negociações', async () => {
+    await wrapper.find('[data-testid="nav-negociacoes"]').trigger('click')
+    expect(wrapper.emitted('navigate')).toBeTruthy()
+    expect(wrapper.emitted('navigate')![0]).toEqual(['negociacoes'])
+  })
+
   it('emite logout ao clicar no botão de logout', async () => {
     await wrapper.find('[data-testid="logout-button"]').trigger('click')
     expect(wrapper.emitted('logout')).toBeTruthy()

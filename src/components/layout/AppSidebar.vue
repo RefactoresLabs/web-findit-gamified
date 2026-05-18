@@ -34,6 +34,7 @@ const navItems = [
   { key: 'explorar', label: 'Explorar', icon: 'pi-search', testid: 'nav-explorar' },
   { key: 'registrar', label: 'Registrar', icon: 'pi-plus-circle', testid: 'nav-registrar' },
   { key: 'meus-itens', label: 'Meus Itens', icon: 'pi-box', testid: 'nav-meus-itens' },
+  { key: 'negociacoes', label: 'Negociações', icon: 'pi-handshake', testid: 'nav-negociacoes' },
 ]
 </script>
 

@@ -2,22 +2,23 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import { useMyItems } from '@/composables/useMyItems'
+import { useNegotiations } from '@/composables/useNegotiations'
 
 const router = useRouter()
-const { myLostItems, myFoundItems, loading, error, fetchMyItems } = useMyItems()
+const { createdNegotiations, receivedNegotiations, loading, error, fetchNegotiations } =
+  useNegotiations()
 
-type TabType = 'perdidos' | 'encontrados'
+type TabType = 'criadas' | 'recebidas'
 type RouteKey = 'explorar' | 'registrar' | 'meus-itens' | 'negociacoes'
 
-const activeTab = ref<TabType>('perdidos')
+const activeTab = ref<TabType>('criadas')
 
 onMounted(() => {
-  fetchMyItems()
+  fetchNegotiations()
 })
 
-const currentItems = computed(() =>
-  activeTab.value === 'perdidos' ? myLostItems.value : myFoundItems.value,
+const currentNegotiations = computed(() =>
+  activeTab.value === 'criadas' ? createdNegotiations.value : receivedNegotiations.value,
 )
 
 const routesMap: Record<RouteKey, { name: RouteKey }> = {
@@ -36,89 +37,95 @@ function handleNavigate(item: string) {
 function handleLogout() {
   window.location.href = '/'
 }
+
+function statusClass(status: string): string {
+  const map: Record<string, string> = {
+    Pendente: 'status-pendente',
+    Aceita: 'status-aceita',
+    Rejeitada: 'status-rejeitada',
+    Finalizada: 'status-finalizada',
+  }
+  return map[status] ?? ''
+}
 </script>
 
 <template>
-  <div class="meus-itens-layout">
-    <AppSidebar active-item="meus-itens" @navigate="handleNavigate" @logout="handleLogout" />
+  <div class="negociacoes-layout">
+    <AppSidebar active-item="negociacoes" @navigate="handleNavigate" @logout="handleLogout" />
 
-    <main class="meus-itens-main">
+    <main class="negociacoes-main">
       <div class="page-header">
-        <h1 class="page-title">Meus Itens</h1>
-        <p class="page-sub">Gerencie os itens que você registrou</p>
+        <h1 class="page-title">Minhas Negociações</h1>
+        <p class="page-sub">Gerencie suas negociações de recuperação</p>
       </div>
 
       <div class="tabs">
         <button
           class="tab"
-          :class="{ active: activeTab === 'perdidos' }"
-          @click="activeTab = 'perdidos'"
+          :class="{ active: activeTab === 'criadas' }"
+          @click="activeTab = 'criadas'"
         >
-          Perdidos ({{ myLostItems.length }})
+          Criadas ({{ createdNegotiations.length }})
         </button>
 
         <button
           class="tab"
-          :class="{ active: activeTab === 'encontrados' }"
-          @click="activeTab = 'encontrados'"
+          :class="{ active: activeTab === 'recebidas' }"
+          @click="activeTab = 'recebidas'"
         >
-          Encontrados ({{ myFoundItems.length }})
+          Recebidas ({{ receivedNegotiations.length }})
         </button>
       </div>
 
       <div v-if="loading" class="loading-state" data-testid="loading-indicator">
         <i class="pi pi-spin pi-spinner" />
-        <p>Carregando seus itens...</p>
+        <p>Carregando negociações...</p>
       </div>
 
       <div v-else-if="error" class="error-state" data-testid="error-message">
         <i class="pi pi-exclamation-circle" />
         <p>{{ error }}</p>
-        <button class="btn-retry" @click="fetchMyItems()">Tentar novamente</button>
+        <button class="btn-retry" @click="fetchNegotiations()">Tentar novamente</button>
       </div>
 
-      <div v-else class="items-list">
+      <div v-else class="negotiations-list">
         <div
-          v-for="item in currentItems"
-          :key="item.id"
-          class="item-card"
+          v-for="neg in currentNegotiations"
+          :key="neg.id"
+          class="negotiation-card"
+          @click="router.push({ name: 'negociacao-detalhe', params: { id: neg.id }, query: { role: activeTab === 'criadas' ? 'criada' : 'recebida' } })"
         >
-          <div class="item-thumb">
-            <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name" />
-            <div v-else class="thumb-placeholder">
-              <i class="pi pi-image"></i>
-            </div>
+          <div class="neg-icon">
+            <i class="pi pi-handshake"></i>
           </div>
 
-          <div class="item-info">
-            <span class="item-title">{{ item.name }}</span>
-
-            <span class="item-location">
-              <i class="pi pi-map-marker"></i>
-              {{ item.locationName }}
+          <div class="neg-info">
+            <span class="neg-item-name">{{ neg.itemName }}</span>
+            <span class="neg-user">
+              <i class="pi pi-user"></i>
+              {{ neg.userName }}
             </span>
-
-            <span
-              class="item-badge"
-              :class="activeTab === 'perdidos' ? 'badge-lost' : 'badge-found'"
-            >
-              {{ activeTab === 'perdidos' ? 'Perdido' : 'Encontrado' }}
+            <span class="status-badge" :class="statusClass(neg.status)">
+              {{ neg.status }}
             </span>
           </div>
 
-          <button
-            class="item-arrow"
-            @click="router.push({ path: `/item/${item.id}`, query: { type: item.type === 'perdido' ? 'perdido' : 'encontrado' } })"
-          >
-            <i class="pi pi-arrow-right"></i>
-          </button>
+          <i class="pi pi-chevron-right neg-arrow"></i>
         </div>
 
-        <div v-if="currentItems.length === 0" class="empty-state">
+        <div v-if="currentNegotiations.length === 0" class="empty-state">
           <i class="pi pi-inbox"></i>
-          <p>Nenhum item registrado ainda.</p>
+          <p>Nenhuma negociação encontrada.</p>
         </div>
       </div>
+
+      <button
+        data-testid="fab-create"
+        class="fab-create"
+        @click="router.push({ name: 'selecionar-item' })"
+      >
+        <i class="pi pi-plus"></i>
+      </button>
     </main>
   </div>
 </template>
@@ -126,7 +133,7 @@ function handleLogout() {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-.meus-itens-layout {
+.negociacoes-layout {
   display: flex;
   min-height: 100vh;
   width: 100%;
@@ -134,13 +141,14 @@ function handleLogout() {
   background: #f9fafb;
 }
 
-.meus-itens-main {
+.negociacoes-main {
   flex: 1;
   overflow-y: auto;
   padding: 2rem 2.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: relative;
 }
 
 .page-title {
@@ -181,13 +189,13 @@ function handleLogout() {
   font-weight: 600;
 }
 
-.items-list {
+.negotiations-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.item-card {
+.negotiation-card {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -199,50 +207,38 @@ function handleLogout() {
   transition: box-shadow 0.15s, transform 0.15s;
 }
 
-.item-card:hover {
+.negotiation-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
   transform: translateY(-1px);
 }
 
-.item-thumb {
-  width: 64px;
-  height: 64px;
+.neg-icon {
+  width: 48px;
+  height: 48px;
   border-radius: 0.625rem;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: #f3f4f6;
-}
-
-.item-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.thumb-placeholder {
-  width: 100%;
-  height: 100%;
+  background: #ede9fe;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #d1d5db;
-  font-size: 1.5rem;
+  color: #4f46e5;
+  font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
-.item-info {
+.neg-info {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
 
-.item-title {
+.neg-item-name {
   font-size: 0.95rem;
   font-weight: 600;
   color: #111827;
 }
 
-.item-location {
+.neg-user {
   font-size: 0.8rem;
   color: #6b7280;
   display: flex;
@@ -250,11 +246,11 @@ function handleLogout() {
   gap: 0.3rem;
 }
 
-.item-location i {
+.neg-user i {
   font-size: 0.75rem;
 }
 
-.item-badge {
+.status-badge {
   display: inline-flex;
   align-self: flex-start;
   padding: 0.2rem 0.75rem;
@@ -263,24 +259,54 @@ function handleLogout() {
   font-weight: 600;
 }
 
-.badge-lost {
-  background: #ef4444;
-  color: #fff;
+.status-pendente {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.badge-found {
-  background: #22c55e;
-  color: #fff;
+.status-aceita {
+  background: #d1fae5;
+  color: #065f46;
 }
 
-.item-arrow {
-  background: none;
-  border: none;
+.status-rejeitada {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-finalizada {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.neg-arrow {
   color: #9ca3af;
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0.25rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
+}
+
+.fab-create {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.fab-create:hover {
+  background: #4338ca;
+  transform: scale(1.05);
 }
 
 .loading-state,

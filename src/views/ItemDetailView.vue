@@ -5,7 +5,7 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
 import { useItemDetail } from '@/composables/useItemDetail'
 import type { RouteLocationRaw } from 'vue-router'
 
-type RouteKey = 'explorar' | 'registrar' | 'meus-itens'
+type RouteKey = 'explorar' | 'registrar' | 'meus-itens' | 'negociacoes'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +21,7 @@ const routesMap: Record<RouteKey, RouteLocationRaw> = {
   explorar: { name: 'explorar' },
   registrar: { name: 'registrar' },
   'meus-itens': { name: 'meus-itens' },
+  negociacoes: { name: 'negociacoes' },
 }
 
 function handleNavigate(itemKey: string) {

@@ -37,6 +37,31 @@ const router = createRouter({
       name: 'item-detail',
       component: () => import('@/views/ItemDetailView.vue'),
     },
+    {
+      path: '/negociacoes',
+      name: 'negociacoes',
+      component: () => import('@/views/NegociacoesView.vue'),
+    },
+    {
+      path: '/negociacao/:id',
+      name: 'negociacao-detalhe',
+      component: () => import('@/views/NegociacaoDetalheView.vue'),
+    },
+    {
+      path: '/selecionar-item',
+      name: 'selecionar-item',
+      component: () => import('@/views/SelecionarItemView.vue'),
+    },
+    {
+      path: '/negociacao/:id/ativar-codigo',
+      name: 'ativar-codigo',
+      component: () => import('@/views/AtivarCodigoView.vue'),
+    },
+    {
+      path: '/negociacao/:id/codigo-ativado',
+      name: 'codigo-ativado',
+      component: () => import('@/views/CodigoAtivadoView.vue'),
+    },
   ],
 })
 

@@ -20,6 +20,7 @@ function handleNavigate(item: string) {
     explorar: { name: 'explorar' },
     registrar: { name: 'registrar' },
     'meus-itens': { name: 'meus-itens' },
+    negociacoes: { name: 'negociacoes' },
   }
 
   if (item === 'explorar') {
