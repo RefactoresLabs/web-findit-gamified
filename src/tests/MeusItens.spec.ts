@@ -53,6 +53,7 @@ vi.mock('@/composables/useMyItems', () => ({
 // eslint-disable-next-line no-unused-vars
 function mountComponent(): VueWrapper {
   return mount(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (async () => (await import('@/views/MeusItensView.vue')).default)() as any,
     {
       global: {
@@ -164,6 +165,7 @@ describe('MeusItensView', () => {
   })
 
   it('navega corretamente', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vm = wrapper.vm as any
     vm.handleNavigate('explorar')
     expect(pushMock).toHaveBeenCalledWith({ name: 'explorar' })
@@ -171,6 +173,7 @@ describe('MeusItensView', () => {
 
   it('não navega com rota inválida', () => {
     pushMock.mockClear()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const vm = wrapper.vm as any
     vm.handleNavigate('invalido')
     expect(pushMock).not.toHaveBeenCalled()
