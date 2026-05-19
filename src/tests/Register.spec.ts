@@ -138,7 +138,7 @@ describe('RegisterView.vue', () => {
 
     expect(request).toBeDefined()
 
-    const body = JSON.parse((request?.[1] as RequestInit).body as string)
+    const body = JSON.parse((request![1] as RequestInit).body as string)
 
     expect(body.confirm_password).toBe('123')
 

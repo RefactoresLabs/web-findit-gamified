@@ -104,7 +104,7 @@ describe('API Client: requests', () => {
 
   expect(request).toBeDefined()
 
-  const callHeaders = (request?.[1] as RequestInit).headers as Record<string, string>
+  const callHeaders = (request![1] as RequestInit).headers as Record<string, string>
 
   expect(callHeaders.Authorization).toBeUndefined()
 })

@@ -50,7 +50,7 @@ vi.mock('@/composables/useMyItems', () => ({
     fetchMyItems: mockFetchMyItems,
   }),
 }))
-// eslint-disable-next-line no-unused-vars
+ 
 function mountComponent(): VueWrapper {
   return mount(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
