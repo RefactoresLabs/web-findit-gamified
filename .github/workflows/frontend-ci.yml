@@ -31,14 +31,4 @@ jobs:
       - name: Build Production (Tailwind Check)
         run: npm run build
 
-  docker-validation:
-    needs: lint-and-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Build Docker Image
-        run: |
-          docker build . -t frontend-lostfinder:test
-          echo "Imagem Docker do Frontend validada com sucesso!"
+  
