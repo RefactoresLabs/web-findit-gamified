@@ -51,21 +51,7 @@ vi.mock('@/composables/useMyItems', () => ({
   }),
 }))
  
-function mountComponent(): VueWrapper {
-  return mount(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (async () => (await import('@/views/MeusItensView.vue')).default)() as any,
-    {
-      global: {
-        stubs: {
-          AppSidebar: {
-            template: '<div data-testid="sidebar"></div>',
-          },
-        },
-      },
-    },
-  )
-}
+
 
 describe('MeusItensView', () => {
   let wrapper: VueWrapper
