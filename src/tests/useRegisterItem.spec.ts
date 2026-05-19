@@ -22,86 +22,129 @@ describe('useRegisterItem', () => {
   }
 
   it('uploadImage → POST /upload w/ FormData, returns url', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ url: '/uploads/photo.jpg' }),
-    })
-
-    const { uploadImage } = await getComposable()
-    const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
-    const url = await uploadImage(file)
-
-    expect(url).toContain('/uploads/photo.jpg')
-    expect(mockFetch).toHaveBeenCalledOnce()
-    const [fetchUrl, fetchOpts] = mockFetch.mock.calls[0]
-    expect(fetchUrl).toContain('/upload')
-    expect(fetchOpts.method).toBe('POST')
-    expect(fetchOpts.body).toBeInstanceOf(FormData)
-    expect(fetchOpts.body.get('file')).toBeInstanceOf(File)
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: () => Promise.resolve({ url: '/uploads/photo.jpg' }),
   })
+
+  const { uploadImage } = await getComposable()
+
+  const file = new File(['img'], 'photo.jpg', {
+    type: 'image/jpeg',
+  })
+
+  const url = await uploadImage(file)
+
+  expect(url).toContain('/uploads/photo.jpg')
+  expect(mockFetch).toHaveBeenCalledOnce()
+
+  const firstCall = mockFetch.mock.calls[0]
+
+  expect(firstCall).toBeDefined()
+
+  const [fetchUrl, fetchOpts] = firstCall!
+
+  expect(fetchUrl).toContain('/upload')
+  expect((fetchOpts as RequestInit).method).toBe('POST')
+  expect((fetchOpts as RequestInit).body).toBeInstanceOf(FormData)
+
+  const body = (fetchOpts as RequestInit).body as FormData
+
+  expect(body.get('file')).toBeInstanceOf(File)
+})
 
   it('uploadImage sends auth header', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ url: '/uploads/x.jpg' }),
-    })
-
-    const { uploadImage } = await getComposable()
-    await uploadImage(new File(['x'], 'x.jpg', { type: 'image/jpeg' }))
-
-    const [, fetchOpts] = mockFetch.mock.calls[0]
-    expect(fetchOpts.headers['Authorization']).toBe('Bearer fake-token')
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: () => Promise.resolve({ url: '/uploads/x.jpg' }),
   })
+
+  const { uploadImage } = await getComposable()
+
+  await uploadImage(
+    new File(['x'], 'x.jpg', {
+      type: 'image/jpeg',
+    }),
+  )
+
+  const firstCall = mockFetch.mock.calls[0]
+
+  expect(firstCall).toBeDefined()
+
+  const [, fetchOpts] = firstCall!
+
+  const headers = (fetchOpts as RequestInit).headers as Record<string, string>
+
+  expect(headers['Authorization']).toBe('Bearer fake-token')
+})
 
   it('createLostItem → POST /lost-items w/ JSON body', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ id: 1 }),
-    })
-
-    const { createLostItem } = await getComposable()
-    await createLostItem({
-      name: 'Carteira',
-      description: 'Carteira preta',
-      category_id: 1,
-      lost_building_space_id: 2,
-      image_urls: ['/uploads/photo.jpg'],
-    })
-
-    expect(mockFetch).toHaveBeenCalledOnce()
-    const [fetchUrl, fetchOpts] = mockFetch.mock.calls[0]
-    expect(fetchUrl).toContain('/lost-items')
-    expect(fetchOpts.method).toBe('POST')
-    const body = JSON.parse(fetchOpts.body)
-    expect(body.name).toBe('Carteira')
-    expect(body.category_id).toBe(1)
-    expect(body.lost_building_space_id).toBe(2)
-    expect(body.image_urls).toEqual(['/uploads/photo.jpg'])
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: () => Promise.resolve({ id: 1 }),
   })
+
+  const { createLostItem } = await getComposable()
+
+  await createLostItem({
+    name: 'Carteira',
+    description: 'Carteira preta',
+    category_id: 1,
+    lost_building_space_id: 2,
+    image_urls: ['/uploads/photo.jpg'],
+  })
+
+  expect(mockFetch).toHaveBeenCalledOnce()
+
+  const firstCall = mockFetch.mock.calls[0]
+
+  expect(firstCall).toBeDefined()
+
+  const [fetchUrl, fetchOpts] = firstCall!
+
+  expect(fetchUrl).toContain('/lost-items')
+  expect((fetchOpts as RequestInit).method).toBe('POST')
+
+  const body = JSON.parse((fetchOpts as RequestInit).body as string)
+
+  expect(body.name).toBe('Carteira')
+  expect(body.category_id).toBe(1)
+  expect(body.lost_building_space_id).toBe(2)
+  expect(body.image_urls).toEqual(['/uploads/photo.jpg'])
+})
 
   it('createFoundItem → POST /found-items w/ JSON body', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ id: 2 }),
-    })
-
-    const { createFoundItem } = await getComposable()
-    await createFoundItem({
-      name: 'Óculos',
-      description: 'Óculos de sol',
-      category_id: 2,
-      found_building_space_id: 1,
-      left_building_space_id: 3,
-      image_urls: [],
-    })
-
-    expect(mockFetch).toHaveBeenCalledOnce()
-    const [fetchUrl, fetchOpts] = mockFetch.mock.calls[0]
-    expect(fetchUrl).toContain('/found-items')
-    const body = JSON.parse(fetchOpts.body)
-    expect(body.found_building_space_id).toBe(1)
-    expect(body.left_building_space_id).toBe(3)
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: () => Promise.resolve({ id: 2 }),
   })
+
+  const { createFoundItem } = await getComposable()
+
+  await createFoundItem({
+    name: 'Óculos',
+    description: 'Óculos de sol',
+    category_id: 2,
+    found_building_space_id: 1,
+    left_building_space_id: 3,
+    image_urls: [],
+  })
+
+  expect(mockFetch).toHaveBeenCalledOnce()
+
+  const firstCall = mockFetch.mock.calls[0]
+
+  expect(firstCall).toBeDefined()
+
+  const [fetchUrl, fetchOpts] = firstCall!
+
+  expect(fetchUrl).toContain('/found-items')
+
+  const body = JSON.parse((fetchOpts as RequestInit).body as string)
+
+  expect(body.found_building_space_id).toBe(1)
+  expect(body.left_building_space_id).toBe(3)
+})
 
   it('loading=true during uploadImage', async () => {
     let resolveUpload!: (v: unknown) => void

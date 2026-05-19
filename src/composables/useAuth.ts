@@ -5,6 +5,11 @@ import type { LoginResponse, RegisterUserRequest } from '@/types/api'
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const base64 = token.split('.')[1]
+
+    if (!base64) {
+      return null
+    }
+
     return JSON.parse(atob(base64))
   } catch {
     return null

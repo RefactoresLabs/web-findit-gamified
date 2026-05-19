@@ -56,12 +56,19 @@ describe('RegisterStepDetails', () => {
   })
 
   it('option values são IDs numéricos', () => {
-    const options = wrapper.findAll('select option')
-    const valueOptions = options.filter((o) => o.element.value !== '' && o.element.value !== '0')
-    for (let i = 0; i < categories.length; i++) {
-      expect(valueOptions[i]!.element.value).toBe(String(categories[i]!.id))
-    }
+  const options = wrapper.findAll('select option')
+
+  const valueOptions = options.filter((o) => {
+    const option = o.element as HTMLOptionElement
+    return option.value !== '' && option.value !== '0'
   })
+
+  for (let i = 0; i < categories.length; i++) {
+    expect(
+      (valueOptions[i]!.element as HTMLOptionElement).value,
+    ).toBe(String(categories[i]!.id))
+  }
+})
 
   it('atualiza itemName', async () => {
     const inputs = wrapper.findAll('input')

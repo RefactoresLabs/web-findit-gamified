@@ -194,14 +194,21 @@ describe('RegisterItensView — API submission (lost)', () => {
   }
 
   it('calls createLostItem on submit for lost type', async () => {
-    await mountAndSubmit()
-    expect(mockCreateLostItem).toHaveBeenCalledOnce()
-    const args = mockCreateLostItem.mock.calls[0][0]
-    expect(args.name).toBe('Carteira')
-    expect(args.category_id).toBe(1)
-    expect(args.description).toBe('desc')
-    expect(args.lost_building_space_id).toBe(2)
-  })
+  await mountAndSubmit()
+
+  expect(mockCreateLostItem).toHaveBeenCalledOnce()
+
+  const call = mockCreateLostItem.mock.calls[0]
+
+  expect(call).toBeDefined()
+
+  const args = call?.[0]
+
+  expect(args.name).toBe('Carteira')
+  expect(args.category_id).toBe(1)
+  expect(args.description).toBe('desc')
+  expect(args.lost_building_space_id).toBe(2)
+})
 
   it('does NOT call uploadImage when file is null', async () => {
     await mountAndSubmit()
@@ -255,7 +262,9 @@ describe('RegisterItensView — API submission with file upload', () => {
 
     expect(mockUploadImage).toHaveBeenCalledOnce()
     expect(mockCreateLostItem).toHaveBeenCalledOnce()
-    const args = mockCreateLostItem.mock.calls[0][0]
+    const call = mockCreateLostItem.mock.calls[0]
+    expect(call).toBeDefined()
+    const args = call?.[0]
     expect(args.image_urls).toEqual(['/uploads/photo.jpg'])
   })
 })

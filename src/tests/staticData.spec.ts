@@ -46,15 +46,18 @@ describe('Static Data: buildings', () => {
   })
 
   it('contém Centro Universitário UNDB', () => {
-    expect(buildings[0].name).toBe('Centro Universitário UNDB')
-  })
+  expect(buildings[0]!.name).toBe('Centro Universitário UNDB')
+})
 
-  it('localização UNDB correta', () => {
-    const undb = buildings[0]
-    expect(undb.localization.cep).toBe('65075441')
-    expect(undb.localization.neighborhood).toBe('Jardim Renascença')
-    expect(undb.localization.street).toBe('Coronel Colares Moreira')
-  })
+it('localização UNDB correta', () => {
+  const undb = buildings[0]
+
+  expect(undb).toBeDefined()
+
+  expect(undb!.localization.cep).toBe('65075441')
+  expect(undb!.localization.neighborhood).toBe('Jardim Renascença')
+  expect(undb!.localization.street).toBe('Coronel Colares Moreira')
+})
 })
 
 describe('Static Data: buildingSpaces', () => {

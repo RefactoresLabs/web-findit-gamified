@@ -96,12 +96,18 @@ describe('API Client: requests', () => {
   })
 
   it('não injeta Authorization header quando sem token', async () => {
-    const { apiClient } = await import('@/services/api')
-    await apiClient.get('/lost-items')
-    const callHeaders = fetchSpy.mock.calls[0][1].headers
-    expect(callHeaders.Authorization).toBeUndefined()
-  })
+  const { apiClient } = await import('@/services/api')
 
+  await apiClient.get('/lost-items')
+
+  const request = fetchSpy.mock.calls[0]
+
+  expect(request).toBeDefined()
+
+  const callHeaders = (request?.[1] as RequestInit).headers as Record<string, string>
+
+  expect(callHeaders.Authorization).toBeUndefined()
+})
   it('POST envia body como JSON', async () => {
     const { apiClient } = await import('@/services/api')
     const body = { name: 'test', email: 'a@b.com' }

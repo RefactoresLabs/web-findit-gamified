@@ -134,8 +134,14 @@ describe('RegisterView.vue', () => {
       expect(wrapper.vm.isLoading).toBe(false)
     })
 
-    const body = JSON.parse(fetchSpy.mock.calls[0][1].body)
+    const request = fetchSpy.mock.calls[0]
+
+    expect(request).toBeDefined()
+
+    const body = JSON.parse((request?.[1] as RequestInit).body as string)
+
     expect(body.confirm_password).toBe('123')
+
   })
 
   // Registro com erro
@@ -163,13 +169,13 @@ describe('RegisterView.vue', () => {
 
   // Loading
   it('ativa loading ao submeter formulário', async () => {
-    fetchSpy.mockReturnValue(new Promise(() => {}))
+    fetchSpy.mockReturnValue(new Promise(() => { }))
     await wrapper.find('form').trigger('submit')
     expect(wrapper.vm.isLoading).toBe(true)
   })
 
   it('botão fica desabilitado durante loading', async () => {
-    fetchSpy.mockReturnValue(new Promise(() => {}))
+    fetchSpy.mockReturnValue(new Promise(() => { }))
     await wrapper.find('form').trigger('submit')
     const btn = wrapper.find('[data-testid="register-button"]')
     expect((btn.element as HTMLButtonElement).disabled).toBe(true)
