@@ -50,7 +50,7 @@ vi.mock('@/composables/useMyItems', () => ({
     fetchMyItems: mockFetchMyItems,
   }),
 }))
-
+// eslint-disable-next-line no-unused-vars
 function mountComponent(): VueWrapper {
   return mount(
     (async () => (await import('@/views/MeusItensView.vue')).default)() as any,
